@@ -12,8 +12,18 @@ def visual_validation_similarity(validation_examples, training_examples):
     into an embedding space using an autoencoder neural network'''
     validation_examples_embedding = extract_resnet_features(validation_examples)
     training_examples_embedding = extract_resnet_features(training_examples)
-    similarity_of_embeddings = torch.exp(validation_examples_embedding * training_examples_embedding)
-    return similarity_of_embeddings / torch.sum(similarity_of_embeddings)
+
+    similarity = torch.empty(validation_examples_embedding.shape[0], training_examples_embedding.shape[0], validation_examples_embedding.shape[1])
+    for i, val_elem in enumerate(validation_examples_embedding):
+        for j, train_elem in enumerate(training_examples_embedding):
+            x_ij_num = torch.exp(val_elem*train_elem)
+            x_ijh_denom = torch.sum(torch.exp(train_elem.expand_as(validation_examples_embedding) * validation_examples_embedding), dim=0)
+            x_ijh_denom = torch.squeeze(x_ijh_denom, dim=1)
+            x_ij_num = torch.squeeze(x_ij_num, dim=1)
+            sim =  x_ij_num / x_ijh_denom
+            sim = torch.squeeze(sim, dim=1)
+            similarity[i,j] = sim
+    return similarity
 
 def extract_resnet_features(images):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
