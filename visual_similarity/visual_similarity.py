@@ -18,6 +18,7 @@ def visual_validation_similarity(validation_examples, training_examples):
         torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
         dim=0)
     similarity = x_ij_num / x_ijh_denom
+    similarity = torch.squeeze(similarity, dim=3)
     return similarity
 
 def extract_resnet_features(images):
