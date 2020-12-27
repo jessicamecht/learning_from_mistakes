@@ -4,6 +4,7 @@ from torchvision.datasets import CIFAR10
 from typing import Any, Callable, Optional, Tuple
 from csv import reader
 import os
+import numpy as np
 
 class WeightedCIFAR(CIFAR10):
     '''initializes the weights for all images with 0.5 for further evaluation'''
@@ -16,17 +17,24 @@ class WeightedCIFAR(CIFAR10):
             download: bool = False,
             instance_weights = None) -> None:
         super(WeightedCIFAR, self).__init__(root, train, transform, target_transform, download)
-        print(len(self.data), 'len data ')
         file_path = os.path.join(self.root, self.base_folder, "instance_weights.csv")
         self.instance_weights = []
-        with open(file_path, 'r') as f:
-            csv_reader = reader(f)
-            for row in csv_reader:
-                self.instance_weights.extend(row)
+        if train:
+            with open(file_path, 'r') as f:
+                csv_reader = reader(f)
+                for row in csv_reader:
+                    self.instance_weights.extend(row)
 
     def __getitem__(self, index):
-        img, target, weight = self.data[index], self.targets[index], self.instance_weights[index]
+        img, target = self.data[index], self.targets[index]
+        if len(self.instance_weights) > 0:
+            weight = self.instance_weights[index]
         return img, target, weight
+
+    def regenerate_instance_weights(self, update_idxs, update_values):
+        instance_weight_np = np.array(self.instance_weights)
+        instance_weight_np[update_idxs] = update_values
+        self.instance_weights = instance_weight_np
 
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''

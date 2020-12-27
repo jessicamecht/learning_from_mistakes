@@ -6,22 +6,19 @@ from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
-
+import numpy as np
 
 def update_architecture_weights():
     '''this method calculates the label, visual and predictive similarities for a given validation set'''
-    model = test.get_initial_model()
-    criterion = nn.CrossEntropyLoss(reduction='none').to('cpu')
-    criterion = criterion#.cuda()
+    pred_performance, visual_similarity, label_similarity = infer_similarities()
 
-    train_data, val_data, test_data = loadCIFARData()
-    train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-    pred_performance, visual_similarity, label_similarity = infer_similarities(val_loader, model, criterion, train_loader)
-    weights = sample_weights(pred_performance, visual_similarity, label_similarity)
-    return weights
-
-def infer_similarities(val_queue, model, criterion, train_queue):
+def infer_similarities():
   #TODO this is highly stripped down for testing purposes on CPU
+  model = test.get_initial_model()
+  criterion = nn.CrossEntropyLoss(reduction='none').to('cpu')
+  criterion = criterion  # .cuda()
+  train_data, val_data, test_data = loadCIFARData()
+  train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
   model.eval()
   elem = next(iter(val_queue))
   input, target = elem[0], elem[1]
@@ -45,6 +42,7 @@ def infer_similarities(val_queue, model, criterion, train_queue):
         if i > 0:
             break
         train_input, train_target = elem[0], elem[1]
+        print(train_target.shape, 'traintargetshape')
         train_input = train_input.permute(0, 3, 1, 2).float() / 255.
         print("Calculate label similarity")
         label_similarity = measure_label_similarity(train_target, val_target)
@@ -52,9 +50,14 @@ def infer_similarities(val_queue, model, criterion, train_queue):
         visual_similarity = visual_validation_similarity(val_input, train_input)
         visual_sim = torch.cat((visual_sim, visual_similarity))
         label_sim = torch.cat((label_sim,label_similarity))
+        weights = sample_weights(loss, visual_similarity, label_similarity)
+        #TODO check if indices are actually correct
+        train_data.dataset.regenerate_instance_weights(list(range(i,train_target.shape[0])), weights)
+
+  #TODO update weights in CSV 
 
   return losses, visual_sim, label_sim
 
 
 if __name__ =="__main__":
-    update_architecture_weights()
+    weights = update_architecture_weights()

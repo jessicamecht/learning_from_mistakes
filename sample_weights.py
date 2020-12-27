@@ -8,7 +8,10 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     transp = torch.transpose(elem_sim_mult, 1, 2)
     r = torch.ones(elem_sim_mult.shape)
     d = torch.bmm(r, transp)
-    overall_similarity = torch.sigmoid(d)
-    #TODO check if this is the correct dimension, it probably should be a scalar
+    # TODO check if this is the correct dimension, it probably should be a scalar
+    # TODO This is only a dummy calculation to get one single value, there must be a mistake somewhere else before which needs to be fixed
+    d_dummy = torch.sum(d, dim=1)
+    d_dummy = torch.sum(d_dummy, dim=1)
+    overall_similarity = torch.sigmoid(d_dummy)
     assert(overall_similarity.shape[0] == predictive_performance.shape[0])
     return overall_similarity
