@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import os, sys
-import resnet_model
+from visual_similarity import resnet_model
 from torch.autograd import Variable
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -10,6 +10,7 @@ from weightedDataLoader import loadCIFARData, getWeightedDataLoaders
 def visual_validation_similarity(validation_examples, training_examples):
     '''function to calculate the image similarities by decoding the images
     into an embedding space using an autoencoder neural network'''
+
     validation_examples_embedding = extract_resnet_features(validation_examples)
     training_examples_embedding = extract_resnet_features(training_examples)
 

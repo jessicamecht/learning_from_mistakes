@@ -9,7 +9,6 @@ def measure_label_similarity(training_example_targets, validation_example_target
     for i, train_target in enumerate(training_example_targets):
         for j, val_target in enumerate(validation_example_targets):
             label_similarity[i,j] = train_target == val_target
-    print(label_similarity.shape)
     return label_similarity
 
 

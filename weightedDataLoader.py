@@ -2,9 +2,6 @@ import torch
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
 
-
-
-
 class WeightedCIFAR(CIFAR10):
     '''initializes the weights fos all images with 0.5 for further evaluation'''
     def __getitem__(self, index):
