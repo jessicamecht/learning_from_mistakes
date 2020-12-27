@@ -5,11 +5,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from weightedDataLoader import loadCIFARData, getWeightedDataLoaders
 
 def measure_label_similarity(training_example_targets, validation_example_targets):
-    label_similarity = torch.empty(training_example_targets.shape[0], validation_example_targets.shape[0], 1)
-    for i, train_target in enumerate(training_example_targets):
-        for j, val_target in enumerate(validation_example_targets):
-            label_similarity[i,j] = train_target == val_target
-    return label_similarity
+    res = training_example_targets.unsqueeze(1) - validation_example_targets
+    res = res == 0
+    return res
 
 
 if __name__ == "__main__":

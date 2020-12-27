@@ -19,9 +19,9 @@ def loadCIFARData(root = 'data'):
     return train_data, val_data, test_data
 
 def getWeightedDataLoaders(train_data, val_data, test_data,batch_size = 128):
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size, num_workers=4, pin_memory=True)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size, num_workers=4, pin_memory=True)
+    train_loader = torch.utils.data.DataLoader(train_data, len(train_data), shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_data, 256, num_workers=4, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=4, pin_memory=True)
     return train_loader, val_loader, test_loader
 
 transform_train = transforms.Compose([
