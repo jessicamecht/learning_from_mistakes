@@ -10,20 +10,14 @@ from weightedDataLoader import loadCIFARData, getWeightedDataLoaders
 def visual_validation_similarity(validation_examples, training_examples):
     '''function to calculate the image similarities by decoding the images
     into an embedding space using an autoencoder neural network'''
-
+    print(validation_examples.shape, training_examples.shape)
     validation_examples_embedding = extract_resnet_features(validation_examples)
     training_examples_embedding = extract_resnet_features(training_examples)
-
-    similarity = torch.empty(validation_examples_embedding.shape[0], training_examples_embedding.shape[0], validation_examples_embedding.shape[1])
-    for i, val_elem in enumerate(validation_examples_embedding):
-        for j, train_elem in enumerate(training_examples_embedding):
-            x_ij_num = torch.exp(val_elem*train_elem)
-            x_ijh_denom = torch.sum(torch.exp(train_elem.expand_as(validation_examples_embedding) * validation_examples_embedding), dim=0)
-            x_ijh_denom = torch.squeeze(x_ijh_denom, dim=1)
-            x_ij_num = torch.squeeze(x_ij_num, dim=1)
-            sim =  x_ij_num / x_ijh_denom
-            sim = torch.squeeze(sim, dim=1)
-            similarity[i,j] = sim
+    x_ij_num = torch.exp(validation_examples_embedding.unsqueeze(1) * training_examples_embedding)
+    x_ijh_denom = torch.sum(
+        torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
+        dim=0)
+    similarity = x_ij_num / x_ijh_denom
     return similarity
 
 def extract_resnet_features(images):
@@ -47,5 +41,7 @@ if __name__ == "__main__":
     val_imgs = val_imgs.permute(0, 3, 1, 2).float() / 255.
     train_imgs = train_imgs.permute(0, 3, 1, 2).float() / 255.
 
+    print('here')
     print(extract_resnet_features(train_imgs).shape)
+    print('here')
     print(visual_validation_similarity(train_imgs, val_imgs).shape)
