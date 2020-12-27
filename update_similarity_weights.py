@@ -52,9 +52,10 @@ def infer_similarities():
         label_sim = torch.cat((label_sim,label_similarity))
         weights = sample_weights(loss, visual_similarity, label_similarity)
         #TODO check if indices are actually correct
-        train_data.dataset.regenerate_instance_weights(list(range(i,train_target.shape[0])), weights)
-
-  #TODO update weights in CSV 
+        indices = np.array(train_data.indices)
+        indices = indices[list(range(i,train_target.shape[0]))]
+        train_data.dataset.regenerate_instance_weights(indices, weights)
+  #TODO update weights in CSV
 
   return losses, visual_sim, label_sim
 
