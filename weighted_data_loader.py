@@ -1,17 +1,37 @@
 import torch
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
+from typing import Any, Callable, Optional, Tuple
+from csv import reader
+import os
 
 class WeightedCIFAR(CIFAR10):
-    '''initializes the weights fos all images with 0.5 for further evaluation'''
+    '''initializes the weights for all images with 0.5 for further evaluation'''
+
+    def __init__(self,
+            root: str,
+            train: bool = True,
+            transform: Optional[Callable] = None,
+            target_transform: Optional[Callable] = None,
+            download: bool = False,
+            instance_weights = None) -> None:
+        super(WeightedCIFAR, self).__init__(root, train, transform, target_transform, download)
+        print(len(self.data), 'len data ')
+        file_path = os.path.join(self.root, self.base_folder, "instance_weights.csv")
+        self.instance_weights = []
+        with open(file_path, 'r') as f:
+            csv_reader = reader(f)
+            for row in csv_reader:
+                self.instance_weights.extend(row)
+
     def __getitem__(self, index):
-        img, target = self.data[index], self.targets[index]
-        weight = 0.5
+        img, target, weight = self.data[index], self.targets[index], self.instance_weights[index]
         return img, target, weight
 
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
     train_data = WeightedCIFAR(root=root, train=True, download=True, transform=transform_train)
+    print(train_data)
     test_data = WeightedCIFAR(root=root, train=False, download=True, transform=transform_test)
     torch.manual_seed(43)
     val_data_size = 512

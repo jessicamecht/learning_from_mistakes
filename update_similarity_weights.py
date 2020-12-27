@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 from DARTS_CNN import test
-from weightedDataLoader import loadCIFARData, getWeightedDataLoaders
+from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
@@ -18,12 +18,11 @@ def update_architecture_weights():
     train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
     pred_performance, visual_similarity, label_similarity = infer_similarities(val_loader, model, criterion, train_loader)
     weights = sample_weights(pred_performance, visual_similarity, label_similarity)
-    print(weights.shape, 'weights')
+    return weights
 
 def infer_similarities(val_queue, model, criterion, train_queue):
-
+  #TODO this is highly stripped down for testing purposes on CPU
   model.eval()
-
   elem = next(iter(val_queue))
   input, target = elem[0], elem[1]
   losses = torch.empty(input.shape[0])

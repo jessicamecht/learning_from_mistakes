@@ -5,7 +5,7 @@ from torch.autograd import Variable
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from visual_similarity import resnet_model
-from weightedDataLoader import  loadCIFARData, getWeightedDataLoaders
+from weighted_data_loader import  loadCIFARData, getWeightedDataLoaders
 
 #TODO remove this class since the predictive performance is the loss of the architecture
 
