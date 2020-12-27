@@ -22,7 +22,7 @@ def update_architecture_weights():
     print(weights.shape, 'weights')
 
 def infer_similarities(val_queue, model, criterion, train_queue):
-  objs = utils.AvgrageMeter()
+  losses = torch.empty(1,1)
   model.eval()
 
   elem = next(iter(val_queue))
@@ -43,7 +43,9 @@ def infer_similarities(val_queue, model, criterion, train_queue):
 
       logits, _ = model(input)
       loss = criterion(logits, target)
-
+      loss_tensor =  torch.tensor([[loss.data.item()]])
+      print(loss_tensor.shape)
+      losses = torch.cat((losses,loss_tensor))
 
       for i, elem in enumerate(train_queue):
         if i > 5:
@@ -56,9 +58,6 @@ def infer_similarities(val_queue, model, criterion, train_queue):
         visual_similarity = visual_validation_similarity(val_input, train_input)
         visual_sim = torch.cat((visual_sim, visual_similarity))
         label_sim = torch.cat((label_sim,label_similarity))
-
-      n = input.size(0)
-      objs.update(loss.data.item(), n)
 
   return objs, visual_sim, label_sim
 
