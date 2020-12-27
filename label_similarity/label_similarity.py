@@ -5,8 +5,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from weightedDataLoader import loadCIFARData, getWeightedDataLoaders
 
 def measure_label_similarity(training_example_targets, validation_example_targets):
+    '''checks for each training and test label if they are the same (1) else 0'''
     res = training_example_targets.unsqueeze(1) - validation_example_targets
-    res = res == 0
+    res = (res == 0).float()
     return res
 
 

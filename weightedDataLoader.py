@@ -10,15 +10,17 @@ class WeightedCIFAR(CIFAR10):
         return img, target, weight
 
 def loadCIFARData(root = 'data'):
+    '''loads the cifar dataset and creates train, test and validation splits'''
     train_data = WeightedCIFAR(root=root, train=True, download=True, transform=transform_train)
     test_data = WeightedCIFAR(root=root, train=False, download=True, transform=transform_test)
     torch.manual_seed(43)
-    val_data_size = 5000
+    val_data_size = 512
     train_size = len(train_data) - val_data_size
     train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     return train_data, val_data, test_data
 
 def getWeightedDataLoaders(train_data, val_data, test_data,batch_size = 128):
+    '''creates dataloader for train, test and validation sets including a weight variable'''
     train_loader = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=4, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(val_data, batch_size, num_workers=4, pin_memory=True)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size, num_workers=4, pin_memory=True)

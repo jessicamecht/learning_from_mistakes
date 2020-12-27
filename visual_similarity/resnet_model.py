@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import os
 
+#TODO update the static weight usage of pretrained resnet on cifar to an architecture whose weights (embedding) can be updated in the learning process
+
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152', 'resnext50_32x4d', 'resnext101_32x8d']
 

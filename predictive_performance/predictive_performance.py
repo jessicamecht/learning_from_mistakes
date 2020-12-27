@@ -7,6 +7,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from visual_similarity import resnet_model
 from weightedDataLoader import  loadCIFARData, getWeightedDataLoaders
 
+#TODO remove this class since the predictive performance is the loss of the architecture
+
 
 def measure_predictive_performance(predicted_validation_samples, validation_labels):
     loss = nn.CrossEntropyLoss()
