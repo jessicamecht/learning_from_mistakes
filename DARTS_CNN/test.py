@@ -1,9 +1,8 @@
 import os
 import sys
-import glob
 import numpy as np
 import torch
-from DARTS_CNN import utils, genotypes
+from DARTS_CNN import utils
 import logging
 import argparse
 import torch.nn as nn
@@ -11,7 +10,6 @@ import torch.utils
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
-from torch.autograd import Variable
 from DARTS_CNN.model import NetworkCIFAR as Network
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'

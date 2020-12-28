@@ -7,8 +7,8 @@ import os
 import numpy as np
 
 class WeightedCIFAR(CIFAR10):
-    '''initializes the weights for all images with 0.5 for further evaluation'''
-
+    '''initialized the weighted CIFAR dataset with its instance weights
+    initially, all instance weights are set to 1'''
     def __init__(self,
             root: str,
             train: bool = True,
@@ -32,6 +32,8 @@ class WeightedCIFAR(CIFAR10):
         return img, target, weight
 
     def regenerate_instance_weights(self, update_idxs, update_values):
+        '''updates the instance weights in the dataset and the csv file'''
+        #TODO, check if changes are reflected immediately
         instance_weight_np = np.array(self.instance_weights)
         instance_weight_np[update_idxs] = update_values
         self.instance_weights = instance_weight_np
@@ -42,7 +44,7 @@ def loadCIFARData(root = 'data'):
     train_data = WeightedCIFAR(root=root, train=True, download=True, transform=transform_train)
     test_data = WeightedCIFAR(root=root, train=False, download=True, transform=transform_test)
     torch.manual_seed(43)
-    val_data_size = 25000
+    val_data_size = len(train_data) // 2 # use half of the dataset for validation
     train_size = len(train_data) - val_data_size
     train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     return train_data, val_data, test_data
