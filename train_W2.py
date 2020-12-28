@@ -1,6 +1,7 @@
 import torch
 from DARTS_CNN.train import infer
 import logging
+import numpy as np
 import sys, os
 import torch.nn as nn
 import torch.utils
@@ -78,11 +79,9 @@ def train(train_queue, model, criterion, optimizer):
     logits, logits_aux = model(input)
     #calculate the weighted loss
     preds = criterion(logits, target)
-    print(preds.shape, 'logis')
-    print('weights', weights)
-
+    weights = torch.tensor(np.array(weights).astype(float))
     weighted_loss_individual =  preds * weights
-    loss = torch.mean(weighted_loss_individual, 1, True)
+    loss = torch.mean(weighted_loss_individual)
 
     if auxiliary:
       loss_aux = criterion(logits_aux, target)
@@ -93,9 +92,9 @@ def train(train_queue, model, criterion, optimizer):
 
     prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
     n = input.size(0)
-    objs.update(loss.data[0], n)
-    top1.update(prec1.data[0], n)
-    top5.update(prec5.data[0], n)
+    objs.update(loss.data.item(), n)
+    top1.update(prec1.data.item(), n)
+    top5.update(prec5.data.item(), n)
 
     if step % report_freq == 0:
       logging.info('train %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
