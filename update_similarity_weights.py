@@ -78,7 +78,7 @@ def infer_similarities(train_data, train_queue, val_queue):
         tic = time.perf_counter()
         indices = np.array(train_data.indices)[list(range(i*train_target.shape[0],(i+1)*train_target.shape[0]))]
         toc = time.perf_counter()
-        print(f"slicing indices took {toc - tic:0.4f} seconds")
+        #print(f"slicing indices took {toc - tic:0.4f} seconds")
 
         weights = weights.cpu()
 
@@ -86,7 +86,7 @@ def infer_similarities(train_data, train_queue, val_queue):
         tic = time.perf_counter()
         train_data.dataset.regenerate_instance_weights(indices, weights)
         toc = time.perf_counter()
-        print(f"regenerate_instance_weights took {toc - tic:0.4f} seconds")
+        #print(f"regenerate_instance_weights took {toc - tic:0.4f} seconds")
 
 
 if __name__ =="__main__":
