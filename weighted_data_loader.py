@@ -33,7 +33,7 @@ class WeightedCIFAR(CIFAR10):
 
     def regenerate_instance_weights(self, update_idxs, update_values):
         instance_weights = self.instance_weights
-        instance_weights = instance_weights.index_put(update_idxs, update_values)
+        instance_weights = instance_weights.index_put_(update_idxs, update_values)
         self.instance_weights = instance_weights
 
 def loadCIFARData(root = 'data'):
