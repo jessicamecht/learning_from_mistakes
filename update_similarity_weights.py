@@ -43,9 +43,11 @@ def infer_similarities(train_data, train_queue, val_queue):
       logits, _ = model(input)
       loss = criterion(logits, target)
 
+      print("Progress of weight calculation: ", utils.progress(step, len(val_queue), val_queue))
+
       for i, elem in enumerate(train_queue):
         train_input, train_target = elem[0].to(device), elem[1].to(device)
-        print("Progress of weight calculation: ", utils.progress(i, val_queue.batch_size, train_queue))
+
 
         # for each training example batch, calculate the similarity to the validation samples and
         # combine them to the overall training instance weight
