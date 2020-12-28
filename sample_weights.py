@@ -7,6 +7,7 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     elem_sim_mult = torch.squeeze(elem_sim_mult, dim=3)
     transp = torch.transpose(elem_sim_mult, 1, 2)
     r = torch.ones(elem_sim_mult.shape)
+    r = Variable(r).cuda()
     d = torch.bmm(r, transp)
     # TODO check if this is the correct dimension, it probably should be a scalar
     # TODO This is only a dummy calculation to get one single value, there must be a mistake somewhere else before which needs to be fixed
