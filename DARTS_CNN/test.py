@@ -92,7 +92,7 @@ def infer(test_queue, model, criterion):
   for step, (input, target) in enumerate(test_queue):
     with torch.no_grad():
       input = Variable(input).cuda()
-      target = Variable(target).cuda(async=True)
+      target = Variable(target).cuda()
 
       logits, _ = model(input)
       loss = criterion(logits, target)

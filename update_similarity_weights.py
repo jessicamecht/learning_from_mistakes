@@ -28,7 +28,7 @@ def infer_similarities():
       print("Validation Batch: ", step)
       val_input = val_input.permute(0, 3, 1, 2).float() / 255.
       input = Variable(val_input).cuda()
-      target = Variable(val_target).cuda(async=True)
+      target = Variable(val_target).cuda()
       logits, _ = model(input)
       loss = criterion(logits, target)
       losses = torch.cat((losses, loss))
