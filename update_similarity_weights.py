@@ -8,15 +8,11 @@ from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
 import numpy as np
 
-def update_architecture_weights():
-    '''this method calculates the label, visual and predictive similarities for a given validation set'''
-    pred_performance, visual_similarity, label_similarity = infer_similarities()
-
 def infer_similarities():
   #TODO this is highly stripped down for testing purposes on CPU
   model = test.get_initial_model()
   criterion = nn.CrossEntropyLoss(reduction='none').to('cpu')
-  criterion = criterion  # .cuda()
+  criterion = criterion.cuda()
   train_data, val_data, test_data = loadCIFARData()
   train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
   model.eval()
@@ -27,20 +23,16 @@ def infer_similarities():
   label_sim = torch.empty(target.shape[0], target.shape[0])
 
   for step, data_label in enumerate(val_queue):
-    if step > 0:
-        break
     val_input, val_target = data_label[0], data_label[1]
     with torch.no_grad():
       print("Validation Batch: ", step)
       val_input = val_input.permute(0, 3, 1, 2).float() / 255.
-      input = Variable(val_input)#.cuda()
-      target = Variable(val_target)#.cuda(async=True)
+      input = Variable(val_input).cuda()
+      target = Variable(val_target).cuda(async=True)
       logits, _ = model(input)
       loss = criterion(logits, target)
       losses = torch.cat((losses, loss))
       for i, elem in enumerate(train_queue):
-        if i > 0:
-            break
         train_input, train_target = elem[0], elem[1]
         print(train_target.shape, 'traintargetshape')
         train_input = train_input.permute(0, 3, 1, 2).float() / 255.
@@ -51,14 +43,15 @@ def infer_similarities():
         visual_sim = torch.cat((visual_sim, visual_similarity))
         label_sim = torch.cat((label_sim,label_similarity))
         weights = sample_weights(loss, visual_similarity, label_similarity)
-        #TODO check if indices are actually correct
         indices = np.array(train_data.indices)
         indices = indices[list(range(i,train_target.shape[0]))]
         train_data.dataset.regenerate_instance_weights(indices, weights)
+        dat = np.array(train_data.dataset)
+        print(dat[indices])
   #TODO update weights in CSV
 
   return losses, visual_sim, label_sim
 
 
 if __name__ =="__main__":
-    weights = update_architecture_weights()
+    weights = infer_similarities()

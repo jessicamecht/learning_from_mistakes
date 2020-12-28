@@ -42,35 +42,35 @@ CIFAR_CLASSES = 10
 def get_initial_model():
   genotype = eval("genotypes.%s" % args.arch)
   model = Network(args.init_channels, CIFAR_CLASSES, args.layers, args.auxiliary, genotype)
-  model = model  # .cuda()
+  model = model.cuda()
   utils.load(model, args.model_path)
   model.drop_path_prob = args.drop_path_prob
   return model
 
 
 def main():
-  #if not torch.cuda.is_available():
-  #  logging.info('no gpu device available')
-  #  sys.exit(1)
+  if not torch.cuda.is_available():
+    logging.info('no gpu device available')
+    sys.exit(1)
 
   np.random.seed(args.seed)
-  #torch.cuda.set_device(args.gpu)
+  torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
   cudnn.enabled=True
-  #torch.cuda.manual_seed(args.seed)
+  torch.cuda.manual_seed(args.seed)
   logging.info('gpu device = %d' % args.gpu)
   logging.info("args = %s", args)
 
   genotype = eval("genotypes.%s" % args.arch)
   model = Network(args.init_channels, CIFAR_CLASSES, args.laxyers, args.auxiliary, genotype)
-  model = model#.cuda()
+  model = model.cuda()
   utils.load(model, args.model_path)
 
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   criterion = nn.CrossEntropyLoss()
-  criterion = criterion#.cuda()
+  criterion = criterion.cuda()
 
   _, test_transform = utils._data_transforms_cifar10(args)
   test_data = dset.CIFAR10(root=args.data, train=False, download=True, transform=test_transform)
@@ -91,8 +91,8 @@ def infer(test_queue, model, criterion):
 
   for step, (input, target) in enumerate(test_queue):
     with torch.no_grad():
-      input = Variable(input)#.cuda()
-      target = Variable(target)#.cuda(async=True)
+      input = Variable(input).cuda()
+      target = Variable(target).cuda(async=True)
 
       logits, _ = model(input)
       loss = criterion(logits, target)
