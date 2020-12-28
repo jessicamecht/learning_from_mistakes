@@ -32,7 +32,7 @@ class WeightedCIFAR(CIFAR10):
         return img, target, weight
 
     def regenerate_instance_weights(self, update_idxs, update_values):
-        print(self.instance_weights.shape)
+        print(len(self.instance_weights))
         instance_weights = torch.tensor(self.instance_weights)
         instance_weights = instance_weights.cuda()
         instance_weights = instance_weights.index_put_(update_idxs, update_values)
