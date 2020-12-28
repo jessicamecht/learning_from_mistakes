@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from DARTS_CNN import test
+import utils
 from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
@@ -45,6 +46,7 @@ def infer_similarities(train_data, train_queue, val_queue):
       for i, elem in enumerate(train_queue):
         print("Calculate weights for Validation Batch: ", step, " for training batch: ", i)
         train_input, train_target = elem[0].to(device), elem[1].to(device)
+        print("Progress of weight calculation: ", utils.progress(i, val_queue.batch_size, train_queue))
 
         # for each training example batch, calculate the similarity to the validation samples and
         # combine them to the overall training instance weight
