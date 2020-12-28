@@ -25,8 +25,10 @@ def visual_validation_similarity(validation_examples, training_examples, model):
 def extract_resnet_features(images, model):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
     img_var = images
-    features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
-    features = features_var.data # get the tensor out of the variable
+    model.eval()
+    with torch.no_grad():
+        features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
+        features = features_var.data # get the tensor out of the variable
     return features
 
 
