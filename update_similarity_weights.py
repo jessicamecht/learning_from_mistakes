@@ -47,9 +47,8 @@ def infer_similarities():
         print("Calculate visual similarity")
         visual_similarity = visual_validation_similarity(val_input, train_input)
         weights = sample_weights(loss, visual_similarity, label_similarity)
-        indices = torch.tensor(train_data.indices).cuda()
-        indices_to_select = torch.tensor(list(range(i,train_target.shape[0]))).cuda()
-        indices = torch.index_select(indices, 0, indices_to_select)
+        indices = np.array(train_data.indices)
+        indices = indices[list(range(i,train_target.shape[0]))]
         train_data.dataset.regenerate_instance_weights(indices, weights)
   #TODO update weights in CSV
 

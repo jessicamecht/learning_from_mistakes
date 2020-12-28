@@ -25,8 +25,6 @@ class WeightedCIFAR(CIFAR10):
                 for row in csv_reader:
                     self.instance_weights.extend(row)
 
-        self.instance_weights = list(map(float, self.instance_weights))
-
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
         if len(self.instance_weights) > 0:
@@ -34,11 +32,9 @@ class WeightedCIFAR(CIFAR10):
         return img, target, weight
 
     def regenerate_instance_weights(self, update_idxs, update_values):
-        print(len(self.instance_weights))
-        instance_weights = torch.tensor(self.instance_weights)
-        instance_weights = instance_weights.cuda()
-        instance_weights = instance_weights.index_put_(update_idxs, update_values)
-        self.instance_weights = instance_weights.tolist()
+        instance_weight_np = np.array(self.instance_weights)
+        instance_weight_np[update_idxs] = update_values
+        self.instance_weights = instance_weight_np
 
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
