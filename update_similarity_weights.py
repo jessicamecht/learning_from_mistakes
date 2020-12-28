@@ -18,9 +18,6 @@ def infer_similarities():
   model.eval()
   elem = next(iter(val_queue))
   input, target = elem[0], elem[1]
-  losses = torch.empty(input.shape[0])
-  visual_sim = torch.empty(input.shape[0], input.shape[0], 2048, 1)
-  label_sim = torch.empty(target.shape[0], target.shape[0])
 
   for step, data_label in enumerate(val_queue):
     val_input, val_target = data_label[0], data_label[1]
@@ -31,7 +28,6 @@ def infer_similarities():
       target = Variable(val_target).cuda()
       logits, _ = model(input)
       loss = criterion(logits, target)
-      losses = torch.cat((losses, loss))
       for i, elem in enumerate(train_queue):
         train_input, train_target = elem[0], elem[1]
         print(train_target.shape, 'traintargetshape')
@@ -40,8 +36,6 @@ def infer_similarities():
         label_similarity = measure_label_similarity(train_target, val_target)
         print("Calculate visual similarity", label_sim.shape)
         visual_similarity = visual_validation_similarity(val_input, train_input)
-        visual_sim = torch.cat((visual_sim, visual_similarity))
-        label_sim = torch.cat((label_sim,label_similarity))
         weights = sample_weights(loss, visual_similarity, label_similarity)
         indices = np.array(train_data.indices)
         indices = indices[list(range(i,train_target.shape[0]))]
@@ -49,8 +43,6 @@ def infer_similarities():
         dat = np.array(train_data.dataset)
         print(dat[indices])
   #TODO update weights in CSV
-
-  return losses, visual_sim, label_sim
 
 
 if __name__ =="__main__":
