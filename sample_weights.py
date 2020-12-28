@@ -1,4 +1,6 @@
 import torch
+from torch.autograd import Variable
+
 
 def sample_weights(predictive_performance, visual_similarity_scores, label_similarity_scores):
     label_score = label_similarity_scores.unsqueeze(2)
