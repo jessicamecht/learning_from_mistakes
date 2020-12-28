@@ -25,11 +25,10 @@ def infer_similarities():
   model.eval()
 
   for step, data_label in enumerate(val_queue):
-    val_input, val_target = Variable(data_label[0]).to(device), Variable(data_label[1]).to(device)
+    val_input, val_target = data_label[0].to(device), data_label[1].to(device)
     with torch.no_grad():
-      val_input = val_input.permute(0, 3, 1, 2).float() / 255.
-      input = Variable(val_input).to(device)
-      target = Variable(val_target).to(device)
+      input = val_input.to(device)
+      target = val_target.to(device)
 
       #predictive performance
       logits, _ = model(input)
@@ -38,7 +37,6 @@ def infer_similarities():
       for i, elem in enumerate(train_queue):
         print("Validation Batch: ", step, " for training batch: ", i)
         train_input, train_target = Variable(elem[0]).to(device), Variable(elem[1]).to(device)
-        train_input = train_input.permute(0, 3, 1, 2).float() / 255.
         label_similarity = measure_label_similarity(train_target, val_target)
         visual_similarity = visual_validation_similarity(val_input, train_input)
         weights = sample_weights(loss, visual_similarity, label_similarity)

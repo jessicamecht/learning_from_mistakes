@@ -14,8 +14,7 @@ class WeightedCIFAR(CIFAR10):
             train: bool = True,
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
-            download: bool = False,
-            instance_weights = None) -> None:
+            download: bool = False) -> None:
         super(WeightedCIFAR, self).__init__(root, train, transform, target_transform, download)
         file_path = os.path.join(self.root, self.base_folder, "instance_weights.csv")
         self.instance_weights = []
@@ -26,7 +25,8 @@ class WeightedCIFAR(CIFAR10):
                     self.instance_weights.extend(row)
 
     def __getitem__(self, index):
-        img, target = self.data[index], self.targets[index]
+        img = torch.tensor(self.data[index]).reshape((3, 32, 32)).float() / 255.
+        target = self.targets[index]
         if len(self.instance_weights) > 0:
             weight = self.instance_weights[index]
         return img, target, weight

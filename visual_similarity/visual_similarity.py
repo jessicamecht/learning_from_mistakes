@@ -41,8 +41,6 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
     train_imgs, train_targets, train_weights = next(iter(train_loader))
     val_imgs, val_targets, val_weights = next(iter(val_loader))
-    val_imgs = val_imgs.permute(0, 3, 1, 2).float() / 255.
-    train_imgs = train_imgs.permute(0, 3, 1, 2).float() / 255.
 
     print(extract_resnet_features(train_imgs).shape)
     print(visual_validation_similarity(train_imgs, val_imgs).shape)

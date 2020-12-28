@@ -16,8 +16,6 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
     train_imgs, train_targets, train_weights = next(iter(train_loader))
     val_imgs, val_targets, val_weights = next(iter(val_loader))
-    val_imgs = val_imgs.permute(0, 3, 1, 2).float() / 255.
-    train_imgs = train_imgs.permute(0, 3, 1, 2).float() / 255.
 
     print(measure_label_similarity(train_targets, val_targets).shape)
 
