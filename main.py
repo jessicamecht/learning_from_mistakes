@@ -2,9 +2,12 @@ import torch
 import update_similarity_weights
 import train_W2
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+import gc
 
 
 def main():
+    gc.collect()
+    torch.cuda.empty_cache()
     # load data
     train_data, val_data, test_data = loadCIFARData()
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
