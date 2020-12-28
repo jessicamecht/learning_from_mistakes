@@ -43,7 +43,7 @@ def infer_similarities(train_data, train_queue, val_queue):
       loss = criterion(logits, target)
 
       for i, elem in enumerate(train_queue):
-        print("Validation Batch: ", step, " for training batch: ", i)
+        print("Calculate weights for Validation Batch: ", step, " for training batch: ", i)
         train_input, train_target = elem[0].to(device), elem[1].to(device)
 
         # for each training example batch, calculate the similarity to the validation samples and
