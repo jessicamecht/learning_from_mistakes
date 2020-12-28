@@ -57,16 +57,17 @@ def infer_similarities(train_data, train_queue, val_queue):
         # for each training example batch, calculate the similarity to the validation samples and
         # combine them to the overall training instance weight
         tic = time.perf_counter()
-        label_similarity = measure_label_similarity(train_target, val_target)
+        label_similarity = measure_label_similarity(train_target, val_target).to(device)
         toc = time.perf_counter()
         print(f"Calculating the label_similarity took {toc - tic:0.4f} seconds")
 
         tic = time.perf_counter()
-        visual_similarity = visual_validation_similarity(val_input, train_input, feature_extractor_model)
+        visual_similarity = visual_validation_similarity(val_input, train_input, feature_extractor_model).to(device)
         toc = time.perf_counter()
         print(f"Calculating the visual_similarity took {toc - tic:0.4f} seconds")
 
         tic = time.perf_counter()
+        loss = loss.to(device)
         weights = sample_weights(loss, visual_similarity, label_similarity)
         toc = time.perf_counter()
         print(f"Calculating the sample_weights took {toc - tic:0.4f} seconds")
