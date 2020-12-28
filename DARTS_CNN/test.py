@@ -11,6 +11,7 @@ import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
 from DARTS_CNN.model import NetworkCIFAR as Network
+import DARTS_CNN.genotypes as genotypes
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 

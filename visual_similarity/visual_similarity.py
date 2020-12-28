@@ -9,11 +9,11 @@ from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def visual_validation_similarity(validation_examples, training_examples):
+def visual_validation_similarity(validation_examples, training_examples, model):
     '''function to calculate the image similarities by decoding the images
     into an embedding space using an autoencoder neural network'''
-    validation_examples_embedding = extract_resnet_features(validation_examples)
-    training_examples_embedding = extract_resnet_features(training_examples)
+    validation_examples_embedding = extract_resnet_features(validation_examples, model)
+    training_examples_embedding = extract_resnet_features(training_examples, model)
     x_ij_num = torch.exp(validation_examples_embedding.unsqueeze(1) * training_examples_embedding)
     x_ijh_denom = torch.sum(
         torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
@@ -22,16 +22,10 @@ def visual_validation_similarity(validation_examples, training_examples):
     similarity = torch.squeeze(similarity, dim=3)
     return similarity
 
-def extract_resnet_features(images):
+def extract_resnet_features(images, model):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
-    resnet_50_model = resnet_model.resnet50(pretrained=True)
-    resnet_50_model = resnet_50_model.to(device)
-    modules=list(resnet_50_model.children())[:-1]
-    resnet_50_model =nn.Sequential(*modules)
-    for p in resnet_50_model.parameters():
-        p.requires_grad = False
-    img_var = images.to(device)
-    features_var = resnet_50_model(img_var) # get the output from the last hidden layer of the pretrained resnet
+    img_var = images
+    features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
     features = features_var.data # get the tensor out of the variable
     return features
 

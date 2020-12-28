@@ -5,10 +5,20 @@ from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
 import numpy as np
+from visual_similarity.visual_similarity import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def infer_similarities(train_queue, val_queue):
+def create_visual_feature_extractor_model():
+  resnet_50_model = resnet_model.resnet50(pretrained=True)
+  resnet_50_model = resnet_50_model.to(device)
+  modules = list(resnet_50_model.children())[:-1]
+  resnet_50_model = nn.Sequential(*modules)
+  for p in resnet_50_model.parameters():
+    p.requires_grad = False
+  return resnet_50_model
+
+def infer_similarities(train_data, train_queue, val_queue):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score'''
 
   model = test.get_initial_model()
@@ -16,6 +26,8 @@ def infer_similarities(train_queue, val_queue):
 
   criterion = nn.CrossEntropyLoss(reduction='none')
   criterion = criterion.to(device)
+
+  feature_extractor_model = create_visual_feature_extractor_model()
 
   model.eval()
 
@@ -37,7 +49,7 @@ def infer_similarities(train_queue, val_queue):
         # for each training example batch, calculate the similarity to the validation samples and
         # combine them to the overall training instance weight
         label_similarity = measure_label_similarity(train_target, val_target)
-        visual_similarity = visual_validation_similarity(val_input, train_input)
+        visual_similarity = visual_validation_similarity(val_input, train_input, feature_extractor_model)
         weights = sample_weights(loss, visual_similarity, label_similarity)
 
         #get the indices in the dataset for which the weights were calculated in this iteration

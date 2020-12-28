@@ -16,13 +16,10 @@ class WeightedCIFAR(CIFAR10):
             target_transform: Optional[Callable] = None,
             download: bool = False) -> None:
         super(WeightedCIFAR, self).__init__(root, train, transform, target_transform, download)
-        file_path = os.path.join(self.root, self.base_folder, "instance_weights.csv")
+        file_path = os.path.join(self.root, self.base_folder, "instance_weights.npy")
         self.instance_weights = []
         if train:
-            with open(file_path, 'r') as f:
-                csv_reader = reader(f)
-                for row in csv_reader:
-                    self.instance_weights.extend(row)
+            self.instance_weights = np.load(file_path)
 
     def __getitem__(self, index):
         img = torch.tensor(self.data[index]).reshape((3, 32, 32)).float() / 255.
@@ -37,7 +34,7 @@ class WeightedCIFAR(CIFAR10):
         instance_weight_np = np.array(self.instance_weights)
         instance_weight_np[update_idxs] = update_values
         self.instance_weights = instance_weight_np
-        np.savetxt("instance_weights.csv", self.instance_weights, delimiter=",")
+        np.save("instance_weights.npy", self.instance_weights)
 
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
