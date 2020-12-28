@@ -17,6 +17,7 @@ def measure_predictive_performance(predicted_validation_samples, validation_labe
 def predict_label(images):
     '''loads a resnet pretrained model for CIFAR and predicts with the given set of weights'''
     resnet_50_model = resnet_model.resnet50(pretrained=True)
+    resnet_50_model = resnet_50_model.cuda()
     #for p in resnet_50_model.parameters():
     #    p.requires_grad = False
     img_var = Variable(images).cuda()
