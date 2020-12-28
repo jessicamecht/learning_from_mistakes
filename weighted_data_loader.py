@@ -25,6 +25,8 @@ class WeightedCIFAR(CIFAR10):
                 for row in csv_reader:
                     self.instance_weights.extend(row)
 
+        self.instance_weights = list(map(int, self.instance_weights))
+
     def __getitem__(self, index):
         img, target = self.data[index], self.targets[index]
         if len(self.instance_weights) > 0:
