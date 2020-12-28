@@ -12,7 +12,7 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     r = Variable(r).cuda()
     d = torch.bmm(r, transp)
     # TODO check if this is the correct dimension, it probably should be a scalar
-    # TODO This is only a dummy calculation to get one single value, there must be a mistake somewhere else before which needs to be fixed
+    # TODO This is only a dummy calculation to get a scalar, there must be a mistake somewhere else before which needs to be fixed
     d_dummy = torch.sum(d, dim=1)
     d_dummy = torch.sum(d_dummy, dim=1)
     overall_similarity = torch.sigmoid(d_dummy)

@@ -32,9 +32,9 @@ class WeightedCIFAR(CIFAR10):
         return img, target, weight
 
     def regenerate_instance_weights(self, update_idxs, update_values):
-        instance_weight_np = np.array(self.instance_weights)
-        instance_weight_np[update_idxs] = update_values
-        self.instance_weights = instance_weight_np
+        instance_weights = self.instance_weights
+        instance_weights = instance_weights.index_put(update_idxs, update_values)
+        self.instance_weights = instance_weights
 
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
