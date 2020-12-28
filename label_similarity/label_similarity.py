@@ -7,7 +7,6 @@ from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 def measure_label_similarity(training_example_targets, validation_example_targets):
     '''checks for each training and test label if they are the same'''
     res = training_example_targets.unsqueeze(1) - validation_example_targets
-    print(training_example_targets.shape, validation_example_targets.shape, 'vale', res.shape)
     res = (res == 0).float()
     return res
 

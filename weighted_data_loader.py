@@ -39,10 +39,9 @@ class WeightedCIFAR(CIFAR10):
 def loadCIFARData(root = 'data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
     train_data = WeightedCIFAR(root=root, train=True, download=True, transform=transform_train)
-    print(train_data)
     test_data = WeightedCIFAR(root=root, train=False, download=True, transform=transform_test)
     torch.manual_seed(43)
-    val_data_size = 512
+    val_data_size = 25000
     train_size = len(train_data) - val_data_size
     train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     return train_data, val_data, test_data

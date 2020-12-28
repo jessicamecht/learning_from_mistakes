@@ -51,8 +51,6 @@ def infer_similarities():
         indices = np.array(train_data.indices)
         indices = indices[list(range(i,train_target.shape[0]))]
         train_data.dataset.regenerate_instance_weights(indices, weights)
-        dat = np.array(train_data.dataset)
-        print(dat[indices])
   #TODO update weights in CSV
 
 

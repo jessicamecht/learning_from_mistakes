@@ -42,7 +42,5 @@ if __name__ == "__main__":
     val_imgs = val_imgs.permute(0, 3, 1, 2).float() / 255.
     train_imgs = train_imgs.permute(0, 3, 1, 2).float() / 255.
 
-    print('here')
     print(extract_resnet_features(train_imgs).shape)
-    print('here')
     print(visual_validation_similarity(train_imgs, val_imgs).shape)
