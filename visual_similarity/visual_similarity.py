@@ -10,7 +10,6 @@ from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 def visual_validation_similarity(validation_examples, training_examples):
     '''function to calculate the image similarities by decoding the images
     into an embedding space using an autoencoder neural network'''
-    print(validation_examples.shape, training_examples.shape)
     validation_examples_embedding = extract_resnet_features(validation_examples)
     training_examples_embedding = extract_resnet_features(training_examples)
     x_ij_num = torch.exp(validation_examples_embedding.unsqueeze(1) * training_examples_embedding)
