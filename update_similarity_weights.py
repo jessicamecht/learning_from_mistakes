@@ -17,7 +17,7 @@ def infer_similarities():
     logging.info('no gpu device available')
     sys.exit(1)
   print('cuda devices: ', torch.cuda.device_count())
-  torch.cuda.set_device(1)
+  torch.cuda.set_device(0)
 
   #TODO this is highly stripped down for testing purposes on CPU
   model = test.get_initial_model()
