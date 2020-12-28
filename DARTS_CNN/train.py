@@ -4,17 +4,19 @@ import time
 import glob
 import numpy as np
 import torch
-import utils
+#import utils as utils
+import DARTS_CNN.utils as utils
 import logging
 import argparse
 import torch.nn as nn
-import genotypes
+#import genotypes
+import DARTS_CNN.genotypes
 import torch.utils
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
-from torch.autograd import Variable
-from model import NetworkCIFAR as Network
+#from model import NetworkCIFAR as Network
+from DARTS_CNN.model import NetworkCIFAR as Network
 
 
 parser = argparse.ArgumentParser("cifar")
@@ -52,14 +54,11 @@ logging.getLogger().addHandler(fh)
 
 CIFAR_CLASSES = 10
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 def main():
-  if not torch.cuda.is_available():
-    logging.info('no gpu device available')
-    sys.exit(1)
-
   np.random.seed(args.seed)
-  torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
   cudnn.enabled=True
@@ -69,12 +68,12 @@ def main():
 
   genotype = eval("genotypes.%s" % args.arch)
   model = Network(args.init_channels, CIFAR_CLASSES, args.layers, args.auxiliary, genotype)
-  model = model.cuda()
+  model = model.to(device)
 
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   criterion = nn.CrossEntropyLoss()
-  criterion = criterion.cuda()
+  criterion = criterion.to(device)
   optimizer = torch.optim.SGD(
       model.parameters(),
       args.learning_rate,
@@ -115,8 +114,8 @@ def train(train_queue, model, criterion, optimizer):
   model.train()
 
   for step, (input, target) in enumerate(train_queue):
-    input = Variable(input).cuda()
-    target = Variable(target).cuda()
+    input = input.to(device)
+    target = target.to(device)
 
     optimizer.zero_grad()
     logits, logits_aux = model(input)
@@ -147,8 +146,8 @@ def infer(valid_queue, model, criterion):
   model.eval()
 
   for step, (input, target) in enumerate(valid_queue):
-    input = Variable(input, volatile=True).cuda()
-    target = Variable(target, volatile=True).cuda()
+    input = input.to(device)
+    target = target.to(device)
 
     logits, _ = model(input)
     loss = criterion(logits, target)

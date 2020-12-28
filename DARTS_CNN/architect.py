@@ -8,6 +8,8 @@ def _concat(xs):
   return torch.cat([x.view(-1) for x in xs])
 
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 class Architect(object):
 
   def __init__(self, model, args):
@@ -75,7 +77,7 @@ class Architect(object):
     assert offset == len(theta)
     model_dict.update(params)
     model_new.load_state_dict(model_dict)
-    return model_new.cuda()
+    return model_new.to(device)
 
   def _hessian_vector_product(self, vector, input, target, r=1e-2):
     R = r / _concat(vector).norm()

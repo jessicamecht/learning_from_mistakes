@@ -59,15 +59,14 @@ logging.getLogger().addHandler(fh)
 
 
 CIFAR_CLASSES = 10
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def main():
-  if not torch.cuda.is_available():
-    logging.info('no gpu device available')
-    sys.exit(1)
 
   np.random.seed(args.seed)
-  torch.cuda.set_device(args.gpu)
+  if device != 'cpu':
+    torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
   cudnn.enabled=True
@@ -78,12 +77,12 @@ def main():
 
   #set loss function
   criterion = nn.CrossEntropyLoss()
-  criterion = criterion.cuda()
+  criterion = criterion.to(device)
 
 
   #initialize network given some parameters (layers = number of cells) #TODO whats init_channels?
   model = Network(args.init_channels, CIFAR_CLASSES, args.layers, criterion)
-  model = model.cuda()
+  model = model.to(device)
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   optimizer = torch.optim.SGD(
@@ -157,13 +156,13 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
     #model to optimize the weights by minimizing training loss
     n = input.size(0)
 
-    input = Variable(input, requires_grad=False).cuda()
-    target = Variable(target, requires_grad=False).cuda()
+    input = Variable(input, requires_grad=False).to(device)
+    target = Variable(target, requires_grad=False).to(device)
 
     # get a random minibatch from the search queue with replacement
     input_search, target_search = next(iter(valid_queue))
-    input_search = Variable(input_search, requires_grad=False).cuda()
-    target_search = Variable(target_search, requires_grad=False).cuda()
+    input_search = Variable(input_search, requires_grad=False).to(device)
+    target_search = Variable(target_search, requires_grad=False).to(device)
 
     #minimize the validation loss
     #input_search, target_search is just the next validation batch
@@ -195,8 +194,8 @@ def infer(valid_queue, model, criterion):
   model.eval()
 
   for step, (input, target) in enumerate(valid_queue):
-    input = Variable(input, volatile=True).cuda()
-    target = Variable(target, volatile=True).cuda()
+    input = Variable(input, volatile=True).to(device)
+    target = Variable(target, volatile=True).to(device)
 
     logits = model(input)
     loss = criterion(logits, target)

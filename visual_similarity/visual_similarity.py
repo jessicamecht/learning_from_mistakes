@@ -7,6 +7,8 @@ sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 def visual_validation_similarity(validation_examples, training_examples):
     '''function to calculate the image similarities by decoding the images
     into an embedding space using an autoencoder neural network'''
@@ -23,12 +25,12 @@ def visual_validation_similarity(validation_examples, training_examples):
 def extract_resnet_features(images):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
     resnet_50_model = resnet_model.resnet50(pretrained=True)
-    resnet_50_model = resnet_50_model.cuda()
+    resnet_50_model = resnet_50_model.to(device)
     modules=list(resnet_50_model.children())[:-1]
     resnet_50_model =nn.Sequential(*modules)
     for p in resnet_50_model.parameters():
         p.requires_grad = False
-    img_var = Variable(images).cuda()
+    img_var = images.to(device)
     features_var = resnet_50_model(img_var) # get the output from the last hidden layer of the pretrained resnet
     features = features_var.data # get the tensor out of the variable
     return features
