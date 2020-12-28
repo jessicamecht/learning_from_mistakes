@@ -7,8 +7,10 @@ from label_similarity.label_similarity import measure_label_similarity
 from sample_weights import sample_weights
 import numpy as np
 from visual_similarity.visual_similarity import resnet_model
+import time
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 def create_visual_feature_extractor_model():
   resnet_50_model = resnet_model.resnet50(pretrained=True)
@@ -40,8 +42,11 @@ def infer_similarities(train_data, train_queue, val_queue):
 
       # the predictive performance is the negative cross entropy loss
       # TODO check if this is actually correct
+      tic = time.perf_counter()
       logits, _ = model(input)
       loss = criterion(logits, target)
+      toc = time.perf_counter()
+      print(f"Calculating the loss took {toc - tic:0.4f} seconds")
 
       print("Progress of weight calculation: ", utils.progress(step, len(val_queue), val_queue))
 
@@ -51,16 +56,36 @@ def infer_similarities(train_data, train_queue, val_queue):
 
         # for each training example batch, calculate the similarity to the validation samples and
         # combine them to the overall training instance weight
+        tic = time.perf_counter()
         label_similarity = measure_label_similarity(train_target, val_target)
+        toc = time.perf_counter()
+        print(f"Calculating the label_similarity took {toc - tic:0.4f} seconds")
+
+        tic = time.perf_counter()
         visual_similarity = visual_validation_similarity(val_input, train_input, feature_extractor_model)
+        toc = time.perf_counter()
+        print(f"Calculating the visual_similarity took {toc - tic:0.4f} seconds")
+
+        tic = time.perf_counter()
         weights = sample_weights(loss, visual_similarity, label_similarity)
+        toc = time.perf_counter()
+        print(f"Calculating the sample_weights took {toc - tic:0.4f} seconds")
+
+
 
         #get the indices in the dataset for which the weights were calculated in this iteration
+        tic = time.perf_counter()
         indices = np.array(train_data.indices)[list(range(i*train_target.shape[0],(i+1)*train_target.shape[0]))]
+        toc = time.perf_counter()
+        print(f"slicing indices took {toc - tic:0.4f} seconds")
+
         weights = weights.cpu()
 
         #update the weights in the dataset
+        tic = time.perf_counter()
         train_data.dataset.regenerate_instance_weights(indices, weights)
+        toc = time.perf_counter()
+        print(f"regenerate_instance_weights took {toc - tic:0.4f} seconds")
 
 
 if __name__ =="__main__":
