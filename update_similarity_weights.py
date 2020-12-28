@@ -48,7 +48,7 @@ def infer_similarities():
         visual_similarity = visual_validation_similarity(val_input, train_input)
         weights = sample_weights(loss, visual_similarity, label_similarity)
         indices = np.array(train_data.indices)
-        indices = indices[list(range(i,train_target.shape[0]))]
+        indices = indices[list(range(i,train_target.shape[0]+1))]
         weights = weights.cpu()
         train_data.dataset.regenerate_instance_weights(indices, weights)
   #TODO update weights in CSV
