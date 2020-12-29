@@ -1,4 +1,3 @@
-import torch
 import update_similarity_weights
 import train_W2
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
