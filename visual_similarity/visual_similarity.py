@@ -14,12 +14,29 @@ def visual_validation_similarity(validation_examples, training_examples, model):
     into an embedding space using an autoencoder neural network'''
     validation_examples_embedding = extract_resnet_features(validation_examples, model)
     training_examples_embedding = extract_resnet_features(training_examples, model)
-    x_ij_num = torch.exp(validation_examples_embedding.unsqueeze(1) * training_examples_embedding)
+    #x_ij_num = torch.exp(training_examples_embedding.unsqueeze(1) * validation_examples_embedding)
+    #x_ijh_denom = torch.sum(
+    #    torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
+    #    dim=0)
+    t, v = torch.squeeze(torch.transpose(training_examples_embedding, 1, 2), dim=3), torch.squeeze(validation_examples_embedding, dim=3)
+    x_ij_num = torch.exp(torch.bmm(t,v))
+
+    expanded_t = training_examples_embedding.unsqueeze(1).repeat(1, 256, 1, 1, 1)
+    expanded_t = torch.squeeze(expanded_t, dim=3)
+    validation_examples_embedding = torch.squeeze(validation_examples_embedding, dim=3)
+    dot_products = torch.empty(validation_examples.shape[0],1,1)
+    for elem in expanded_t:
+        dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
+        ttbs = torch.cat((dot_products, dot_product), dim=1)
+
     x_ijh_denom = torch.sum(
-        torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
-        dim=0)
+        torch.exp(dot_products),
+        dim=1)
     similarity = x_ij_num / x_ijh_denom
-    similarity = torch.squeeze(similarity, dim=3)
+    #dimension check
+    #assert(similarity.shape[0] == training_examples_embedding.shape[0])
+    #assert(similarity.shape[1] == validation_examples_embedding.shape[0])
+    #assert(similarity.shape[2] == validation_examples_embedding.shape[1])
     return similarity
 
 def extract_resnet_features(images, model):
