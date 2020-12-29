@@ -92,6 +92,7 @@ def save_checkpoint(state, is_best, save):
 
 
 def save(model, model_path):
+  print(model_path)
   torch.save(model.state_dict(), model_path)
 
 
