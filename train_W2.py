@@ -24,7 +24,7 @@ momentum = 0.9
 weight_decay = 3e-4
 epochs = 600
 drop_path_prob = 0.2
-save = 'EXP'
+save = './EXP'
 grad_clip = 5
 report_freq = 50
 
