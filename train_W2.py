@@ -85,6 +85,7 @@ def train(train_queue, model, criterion, optimizer):
 
     n = input.size(0)
     objs.update(loss.data.item(), n)
+    print(loss.data.item(), input, target, weights, 'test')
 
     if step % report_freq == 0:
       logging.info('train %03d %e', step, objs.avg)
