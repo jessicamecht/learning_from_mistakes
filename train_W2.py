@@ -80,8 +80,8 @@ def train(train_queue, model, criterion, optimizer):
 
     #calculate the weighted loss
     preds = criterion(logits, target)
-    weights = torch.tensor(np.array(weights).astype(float))
-    weighted_loss_individual =  preds * weights
+    weights = torch.tensor(np.array(weights).astype(float)).to(device)
+    weighted_loss_individual =  preds.float() * weights
     loss = torch.mean(weighted_loss_individual)
 
     loss.backward()
@@ -92,7 +92,7 @@ def train(train_queue, model, criterion, optimizer):
     objs.update(loss.data.item(), n)
 
     if step % report_freq == 0:
-      logging.info('train %03d %e %f %f', step, objs.avg)
+      logging.info('train %03d %e', step, objs.avg)
 
   return objs.avg
 
