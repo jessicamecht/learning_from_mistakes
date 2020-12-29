@@ -64,7 +64,7 @@ def main(train_queue):
         scheduler.step()
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
 
-        utils.save(model, os.path.join(save, 'weights.pt'))
+        utils.save(model, os.path.join(save, 'weights_2.pt'))
 
 def train(train_queue, model, criterion, optimizer):
   objs = utils.AvgrageMeter()
@@ -75,13 +75,9 @@ def train(train_queue, model, criterion, optimizer):
     target = target.to(device)
 
     optimizer.zero_grad()
-    logits, _ = model(input)
 
     #calculate the weighted loss
-    preds = criterion(logits, target)
-    weights = torch.tensor(np.array(weights).astype(float)).to(device)
-    weighted_loss_individual =  preds.float() * weights.float()
-    loss = torch.mean(weighted_loss_individual)
+    loss = calculate_weighted_loss(input, target, model, criterion, weights)
 
     loss.backward()
     nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
@@ -94,6 +90,14 @@ def train(train_queue, model, criterion, optimizer):
       logging.info('train %03d %e', step, objs.avg)
 
   return objs.avg
+
+def calculate_weighted_loss(input, target, model, criterion, weights):
+    logits, _ = model(input)
+    preds = criterion(logits, target)
+    weights = torch.tensor(np.array(weights).astype(float)).to(device)
+    weighted_loss_individual = preds.float() * weights.float()
+    loss = torch.mean(weighted_loss_individual)
+    return loss
 
 if __name__ == "__main__":
     train_data, val_data, test_data = loadCIFARData()

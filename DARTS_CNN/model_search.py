@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from operations import *
-from torch.autograd import Variable
-from genotypes import PRIMITIVES
-from genotypes import Genotype
+from DARTS_CNN.operations import *
+from DARTS_CNN.genotypes import PRIMITIVES, Genotype
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class MixedOp(nn.Module):
@@ -136,13 +136,13 @@ class Network(nn.Module):
   def _initialize_alphas(self):
     #this is to initialize the architecture? just a random tensor of size k x number of primitives
     #because we want to evaluate every primitive at a specific stage to figure out the k best
-    #TODO figure out what the actual alphas mean, are they the architecture?
+    #TODO Check if the alphas are the 'encoded' architecture
 
     k = sum(1 for i in range(self._steps) for n in range(2+i))
     num_ops = len(PRIMITIVES)
 
-    self.alphas_normal = Variable(1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
-    self.alphas_reduce = Variable(1e-3*torch.randn(k, num_ops).cuda(), requires_grad=True)
+    self.alphas_normal = 1e-3*torch.randn(k, num_ops, requires_grad=False).to(device)
+    self.alphas_reduce = 1e-3*torch.randn(k, num_ops, requires_grad=False).to(device)
     self._arch_parameters = [
       self.alphas_normal,
       self.alphas_reduce,

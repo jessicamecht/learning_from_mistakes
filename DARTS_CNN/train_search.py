@@ -4,7 +4,7 @@ import time
 import glob
 import numpy as np
 import torch
-import utils
+import DARTS_CNN.utils as utils
 import logging
 import argparse
 import torch.nn as nn
@@ -14,9 +14,9 @@ import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
 from torch.autograd import Variable
-from model_search import Network
-from architect import Architect
-
+from DARTS_CNN.model_search import Network
+from DARTS_CNN.architect import Architect
+import train_W2
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
@@ -62,11 +62,9 @@ CIFAR_CLASSES = 10
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def main():
+def main(train_queue, valid_queue):
 
   np.random.seed(args.seed)
-  if device != 'cpu':
-    torch.cuda.set_device(args.gpu)
   cudnn.benchmark = True
   torch.manual_seed(args.seed)
   cudnn.enabled=True
@@ -91,7 +89,7 @@ def main():
       momentum=args.momentum,
       weight_decay=args.weight_decay)
 
-  train_transform, valid_transform = utils._data_transforms_cifar10(args)
+  '''train_transform, valid_transform = utils._data_transforms_cifar10(args)
   train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
 
   num_train = len(train_data)
@@ -107,20 +105,20 @@ def main():
   valid_queue = torch.utils.data.DataLoader(
       train_data, batch_size=args.batch_size,
       sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-      pin_memory=True, num_workers=2)
+      pin_memory=True, num_workers=2)'''
 
   #set learning rate scheduler
   scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, float(args.epochs), eta_min=args.learning_rate_min)
 
   #set the architecture from the model
-  #TODO difference between architecture and Network (model)
+  # Architecture controls architecture of cell by computing gradients of alphas
   architect = Architect(model, args)
+
 
   #regular training procedure
   for epoch in range(args.epochs):
-    scheduler.step()
-    lr = scheduler.get_lr()[0]
+    lr = scheduler.get_last_lr()[0]
     logging.info('epoch %d lr %e', epoch, lr)
 
     #The genotype is initialized as the base including a normal and reduction part where we evaluate the k best building blocks
@@ -132,6 +130,7 @@ def main():
 
     # training
     train_acc, train_obj = train(train_queue, valid_queue, model, architect, criterion, optimizer, lr)
+    scheduler.step()
     logging.info('train_acc %f', train_acc)
 
     # validation
@@ -151,18 +150,18 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
   top1 = utils.AvgrageMeter()
   top5 = utils.AvgrageMeter()
 
-  for step, (input, target) in enumerate(train_queue):
+  for step, (input, target, weights) in enumerate(train_queue):
     model.train()
     #model to optimize the weights by minimizing training loss
     n = input.size(0)
 
-    input = Variable(input, requires_grad=False).to(device)
-    target = Variable(target, requires_grad=False).to(device)
+    input = input.to(device)
+    target = target.to(device)
 
     # get a random minibatch from the search queue with replacement
-    input_search, target_search = next(iter(valid_queue))
-    input_search = Variable(input_search, requires_grad=False).to(device)
-    target_search = Variable(target_search, requires_grad=False).to(device)
+    input_search, target_search, weights_search = next(iter(valid_queue))
+    input_search = input_search.to(device)
+    target_search = target_search.to(device)
 
     #minimize the validation loss
     #input_search, target_search is just the next validation batch
@@ -170,7 +169,8 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
 
     optimizer.zero_grad()
     logits = model(input)
-    loss = criterion(logits, target)
+    loss = train_W2.calculate_weighted_loss(input, target, model, criterion, weights)
+    #loss = criterion(logits, target)
 
     loss.backward()
     nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
