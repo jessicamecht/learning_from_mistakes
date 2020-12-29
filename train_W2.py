@@ -59,11 +59,10 @@ def main(train_queue):
 
         model.drop_path_prob = drop_path_prob * epoch / epochs
 
-        train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+        train_obj = train(train_queue, model, criterion, optimizer)
 
         scheduler.step()
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
-        logging.info('train_acc %f', train_acc)
 
         utils.save(model, os.path.join(save, 'weights.pt'))
 
