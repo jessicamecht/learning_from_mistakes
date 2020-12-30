@@ -39,7 +39,7 @@ def visual_validation_similarity(validation_examples, training_examples, model):
         if torch.isnan(dot_products).any():
             print(dot_product)
             print(torch.isnan(elem).any(), elem.view(256, 1, 2048), torch.isnan(validation_examples_embedding).any(), validation_examples_embedding.view(256, 2048, 1))
-
+        assert(not torch.isnan(dot_products).any())
 
     x_ijh_denom = torch.sum(
         torch.exp(dot_products),
