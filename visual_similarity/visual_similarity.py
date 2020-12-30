@@ -22,13 +22,13 @@ def visual_validation_similarity(validation_examples, training_examples, model):
 
     expanded_t = torch.squeeze(expanded_t, dim=3)
     validation_examples_embedding = torch.squeeze(validation_examples_embedding, dim=3)
-    dot_products = torch.tensor(()).to(device)
+    dot_products = []
     for elem in expanded_t:
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
         assert (not torch.isnan(dot_product).any())
-        dot_products = torch.cat((dot_products, dot_product), dim=0)
-        assert (not torch.isnan(dot_products).any())
-
+        dot_products.append(dot_product)
+    dot_products = torch.cat(dot_products, dim=1)
+    assert (not torch.isnan(dot_products).any())
     x_ijh_denom = torch.sum(
         torch.exp(dot_products),
         dim=1)
