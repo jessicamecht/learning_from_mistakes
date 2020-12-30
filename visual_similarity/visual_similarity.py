@@ -27,7 +27,7 @@ def visual_validation_similarity(validation_examples, training_examples, model):
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
         assert (not torch.isnan(dot_product).any())
         dot_products = torch.cat((dot_products, dot_product), dim=1)
-        assert (not torch.isnan(dot_product).any())
+        assert (not torch.isnan(dot_products).any())
 
     x_ijh_denom = torch.sum(
         torch.exp(dot_products),
