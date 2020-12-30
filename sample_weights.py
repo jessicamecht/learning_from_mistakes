@@ -5,6 +5,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def sample_weights(predictive_performance, visual_similarity_scores, label_similarity_scores):
     pred_perf = predictive_performance.view(predictive_performance.shape[0], 1, 1)
+
     elem_sim_mult =  visual_similarity_scores * label_similarity_scores.unsqueeze(2)
     elem_sim_mult = elem_sim_mult * pred_perf
 

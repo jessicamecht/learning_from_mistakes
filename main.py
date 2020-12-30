@@ -1,6 +1,6 @@
 import update_similarity_weights
 import train_W2
-from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+from weighted_data_loader import loadCIFARData, getWeightedDataLoaders, create_clean_initial_weights
 import DARTS_CNN.train_search
 
 
@@ -11,7 +11,8 @@ def main():
 
     # First Stage: uses pretrained DARTS Architecture (weights W1), calculates similarity weights
     # for each training sample and updates them in the dataset instance_weights.npy
-    #update_similarity_weights.infer_similarities(train_data, train_queue, val_queue)
+    create_clean_initial_weights('./data/', 'cifar-10-batches-py')
+    update_similarity_weights.infer_similarities(train_data, train_queue, val_queue)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss

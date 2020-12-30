@@ -17,6 +17,7 @@ class WeightedCIFAR(CIFAR10):
         super(WeightedCIFAR, self).__init__(root, train, transform, target_transform, download)
         file_path = os.path.join(self.root, self.base_folder, "instance_weights.npy")
         self.instance_weights = []
+
         if train:
             self.instance_weights = np.load(file_path)
 
@@ -66,6 +67,10 @@ transform_test = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
+
+def create_clean_initial_weights(root, base_folder):
+    ones = np.ones(50000)
+    np.save(os.path.join(root, base_folder, "instance_weights.npy"), ones)
 
 if __name__ == "__main__":
     train_data, val_data, test_data = loadCIFARData()

@@ -85,7 +85,11 @@ def train(train_queue, model, criterion, optimizer):
 
     n = input.size(0)
     objs.update(loss.data.item(), n)
-    logging.info(loss.data.item(), input, target, weights, 'test')
+    assert(not torch.isnan(loss).any())
+    assert(not torch.isnan(input).any())
+    assert(not torch.isnan(target).any())
+    assert(not torch.isnan(weights).any())
+
 
     if step % report_freq == 0:
       logging.info('train %03d %e', step, objs.avg)
