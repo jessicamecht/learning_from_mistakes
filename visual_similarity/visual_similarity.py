@@ -3,6 +3,7 @@ import torch.nn as nn
 import os, sys
 from visual_similarity import resnet_model
 from torch.autograd import Variable
+torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
@@ -34,7 +35,6 @@ def visual_validation_similarity(validation_examples, training_examples, model):
     assert (not torch.isnan(validation_examples_embedding).any())
     dot_products = torch.empty(validation_examples.shape[0],1,1).to(device)
     for elem in expanded_t:
-        print(elem.shape, 'elemshape')
         assert (not torch.isnan(elem.view(256, 1, 2048)).any())
         assert (not torch.isnan(validation_examples_embedding.view(256, 2048, 1)).any())
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
