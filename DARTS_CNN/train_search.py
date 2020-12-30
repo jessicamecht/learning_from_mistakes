@@ -118,7 +118,7 @@ def main(train_queue, valid_queue):
 
   #regular training procedure
   for epoch in range(args.epochs):
-    lr = scheduler.get_lr()()[0]
+    lr = scheduler.get_lr()[0]
     logging.info('epoch %d lr %e', epoch, lr)
 
     #The genotype is initialized as the base including a normal and reduction part where we evaluate the k best building blocks
