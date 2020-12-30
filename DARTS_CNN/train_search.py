@@ -13,7 +13,6 @@ import torch.nn.functional as F
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
-from torch.autograd import Variable
 from DARTS_CNN.model_search import Network
 from DARTS_CNN.architect import Architect
 import train_W2
@@ -61,6 +60,10 @@ logging.getLogger().addHandler(fh)
 CIFAR_CLASSES = 10
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+def max_mem():
+  return torch.cuda.max_memory_allocated() if torch.cuda.is_available() else 0
+
+
 
 def main(train_queue, valid_queue):
 
@@ -72,6 +75,8 @@ def main(train_queue, valid_queue):
   logging.info('gpu device = %d' % args.gpu)
   logging.info("args = %s", args)
 
+  print("Max memory allocated: ", max_mem())
+
 
   #set loss function
   criterion = nn.CrossEntropyLoss()
@@ -81,6 +86,7 @@ def main(train_queue, valid_queue):
   #initialize network given some parameters (layers = number of cells) #TODO whats init_channels?
   model = Network(args.init_channels, CIFAR_CLASSES, args.layers, criterion)
   model = model.to(device)
+  print("Max memory allocated after device: ", max_mem())
   logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
   optimizer = torch.optim.SGD(
@@ -89,23 +95,6 @@ def main(train_queue, valid_queue):
       momentum=args.momentum,
       weight_decay=args.weight_decay)
 
-  '''train_transform, valid_transform = utils._data_transforms_cifar10(args)
-  train_data = dset.CIFAR10(root=args.data, train=True, download=True, transform=train_transform)
-
-  num_train = len(train_data)
-  indices = list(range(num_train))
-  split = int(np.floor(args.train_portion * num_train))
-
-  #get training and validation loader
-  train_queue = torch.utils.data.DataLoader(
-      train_data, batch_size=args.batch_size,
-      sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
-      pin_memory=True, num_workers=2)
-
-  valid_queue = torch.utils.data.DataLoader(
-      train_data, batch_size=args.batch_size,
-      sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
-      pin_memory=True, num_workers=2)'''
 
   #set learning rate scheduler
   scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -118,6 +107,7 @@ def main(train_queue, valid_queue):
 
   #regular training procedure
   for epoch in range(args.epochs):
+    print("Max memory allocated: ", max_mem())
     lr = scheduler.get_lr()[0]
     logging.info('epoch %d lr %e', epoch, lr)
 
@@ -151,12 +141,14 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
   top5 = utils.AvgrageMeter()
 
   for step, (input, target, weights) in enumerate(train_queue):
+    print("Max memory allocated: ", max_mem())
     model.train()
     #model to optimize the weights by minimizing training loss
     n = input.size(0)
 
     input = input.to(device)
     target = target.to(device)
+    print("Max memory allocated after train init: ", max_mem())
 
     # get a random minibatch from the search queue with replacement
     input_search, target_search, weights_search = next(iter(valid_queue))
@@ -194,8 +186,8 @@ def infer(valid_queue, model, criterion):
   model.eval()
 
   for step, (input, target) in enumerate(valid_queue):
-    input = Variable(input, volatile=True).to(device)
-    target = Variable(target, volatile=True).to(device)
+    input = input.to(device)
+    target = target.to(device)
 
     logits = model(input)
     loss = criterion(logits, target)
