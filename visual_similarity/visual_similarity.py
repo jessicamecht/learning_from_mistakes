@@ -38,8 +38,6 @@ def visual_validation_similarity(validation_examples, training_examples, model):
         dot_products = torch.cat((dot_products, dot_product), dim=1)
     assert(not torch.isnan(dot_products).any())
 
-
-
     x_ijh_denom = torch.sum(
         torch.exp(dot_products),
         dim=1)
