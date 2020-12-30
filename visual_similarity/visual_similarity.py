@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import os, sys
 from visual_similarity import resnet_model
-from torch.autograd import Variable
 torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,38 +19,21 @@ def visual_validation_similarity(validation_examples, training_examples, model):
     #    torch.exp(training_examples_embedding.expand_as(validation_examples_embedding).unsqueeze(1) * validation_examples_embedding),
     #    dim=0)
     t, v = torch.squeeze(torch.transpose(training_examples_embedding, 1, 2), dim=3), torch.squeeze(validation_examples_embedding, dim=3)
-    assert (not torch.isnan(validation_examples_embedding).any())
-    assert (not torch.isnan(training_examples_embedding).any())
-    assert(not torch.isnan(t).any())
-    assert (not torch.isnan(t).any())
+
     x_ij_num = torch.exp(torch.bmm(t,v))
 
     expanded_t = training_examples_embedding.unsqueeze(1).repeat(1, 256, 1, 1, 1)
-    assert (not torch.isnan(expanded_t).any())
 
     expanded_t = torch.squeeze(expanded_t, dim=3)
-    assert (not torch.isnan(expanded_t).any())
     validation_examples_embedding = torch.squeeze(validation_examples_embedding, dim=3)
-    assert (not torch.isnan(validation_examples_embedding).any())
     dot_products = torch.empty(validation_examples.shape[0],1,1).to(device)
     for elem in expanded_t:
-        assert (not torch.isnan(elem.view(256, 1, 2048)).any())
-        assert (not torch.isnan(validation_examples_embedding.view(256, 2048, 1)).any())
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
         dot_products = torch.cat((dot_products, dot_product), dim=1)
-        #if torch.isnan(dot_products).any():
-        #    #print(dot_product)
-        #    #print(torch.isnan(elem).any(), elem.view(256, 1, 2048), torch.isnan(validation_examples_embedding).any(), validation_examples_embedding.view(256, 2048, 1))
-    if torch.isnan(dot_products).any():
-        print(dot_products.shape)
-        print(dot_products, 'dot_products')
-    assert(not torch.isnan(dot_products).any())
-
 
     x_ijh_denom = torch.sum(
         torch.exp(dot_products),
         dim=1)
-    assert(not torch.isnan(x_ijh_denom).any())
     similarity = x_ij_num / x_ijh_denom
     assert(not torch.isnan(similarity).any())
     #dimension check
