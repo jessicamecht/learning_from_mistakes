@@ -22,7 +22,7 @@ def visual_validation_similarity(validation_examples, training_examples, model):
 
     expanded_t = torch.squeeze(expanded_t, dim=3)
     validation_examples_embedding = torch.squeeze(validation_examples_embedding, dim=3)
-    dot_products = torch.tensor(())
+    dot_products = torch.tensor(()).to(device)
     for elem in expanded_t:
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
         assert (not torch.isnan(dot_product).any())
