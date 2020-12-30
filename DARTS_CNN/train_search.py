@@ -141,7 +141,6 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
   top5 = utils.AvgrageMeter()
 
   for step, (input, target, weights) in enumerate(train_queue):
-    print("Max memory allocated: ", max_mem())
     model.train()
     #model to optimize the weights by minimizing training loss
     n = input.size(0)
@@ -186,20 +185,21 @@ def infer(valid_queue, model, criterion):
   model.eval()
 
   for step, (input, target) in enumerate(valid_queue):
-    input = input.to(device)
-    target = target.to(device)
+    with torch.no_grad():
+      input = input.to(device)
+      target = target.to(device)
 
-    logits = model(input)
-    loss = criterion(logits, target)
+      logits = model(input)
+      loss = criterion(logits, target)
 
-    prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
-    n = input.size(0)
-    objs.update(loss.data.item(), n)
-    top1.update(prec1.data.item(), n)
-    top5.update(prec5.data.item(), n)
+      prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
+      n = input.size(0)
+      objs.update(loss.data.item(), n)
+      top1.update(prec1.data.item(), n)
+      top5.update(prec5.data.item(), n)
 
-    if step % args.report_freq == 0:
-      logging.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
+      if step % args.report_freq == 0:
+        logging.info('valid %03d %e %f %f', step, objs.avg, top1.avg, top5.avg)
 
   return top1.avg, objs.avg
 
