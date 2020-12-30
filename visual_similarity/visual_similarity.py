@@ -34,6 +34,8 @@ def visual_validation_similarity(validation_examples, training_examples, model):
     assert (not torch.isnan(validation_examples_embedding).any())
     dot_products = torch.empty(validation_examples.shape[0],1,1).to(device)
     for elem in expanded_t:
+        assert (not torch.isnan(elem.view(256, 1, 2048)).any())
+        assert (not torch.isnan(validation_examples_embedding.view(256, 2048, 1)).any())
         dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
         dot_products = torch.cat((dot_products, dot_product), dim=1)
         if torch.isnan(dot_products).any():
