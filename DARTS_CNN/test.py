@@ -40,9 +40,9 @@ CIFAR_CLASSES = 10
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def get_initial_model():
+def get_initial_model(init_channels, CIFAR_CLASSES, layers, auxiliary):
   genotype = eval("genotypes.%s" % args.arch)
-  model = Network(args.init_channels, CIFAR_CLASSES, args.layers, args.auxiliary, genotype)
+  model = Network(init_channels, CIFAR_CLASSES, layers, auxiliary, genotype)
   model = model.to(device)
   utils.load(model, args.model_path)
   model.drop_path_prob = args.drop_path_prob

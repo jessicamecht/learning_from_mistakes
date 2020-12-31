@@ -24,7 +24,7 @@ def create_visual_feature_extractor_model():
 def infer_similarities(train_data, train_queue, val_queue):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score'''
 
-  model = test.get_initial_model()
+  model = test.get_initial_model(16, 10, 20, True)
   model = model.to(device)
 
   criterion = nn.CrossEntropyLoss(reduction='none')

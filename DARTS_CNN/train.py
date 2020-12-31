@@ -114,8 +114,8 @@ def train(train_queue, model, criterion, optimizer):
   model.train()
 
   for step, (input, target) in enumerate(train_queue):
-    input = input.to(device)
-    target = target.to(device)
+    input = input.to(device, non_blocking=True)
+    target = target.to(device, non_blocking=True)
 
     optimizer.zero_grad()
     logits, logits_aux = model(input)

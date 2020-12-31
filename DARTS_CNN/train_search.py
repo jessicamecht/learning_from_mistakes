@@ -145,8 +145,8 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
     #model to optimize the weights by minimizing training loss
     n = input.size(0)
 
-    input = input.to(device)
-    target = target.to(device)
+    input = input.to(device, non_blocking=True)
+    target = target.to(device, non_blocking=True)
     print("Max memory allocated after train init: ", max_mem())
 
     # get a random minibatch from the search queue with replacement
@@ -186,8 +186,8 @@ def infer(valid_queue, model, criterion):
 
   for step, (input, target) in enumerate(valid_queue):
     with torch.no_grad():
-      input = input.to(device)
-      target = target.to(device)
+      input = input.to(device, non_blocking=True)
+      target = target.to(device, non_blocking=True)
 
       logits = model(input)
       loss = criterion(logits, target)

@@ -23,7 +23,8 @@ def main():
     #train_W2.main(train_queue)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
-    DARTS_pt4.search.main(train_queue, val_queue)
+    DARTS_CNN.train_search(train_queue, val_queue)
+    #DARTS_pt4.search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
 
