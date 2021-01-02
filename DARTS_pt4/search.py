@@ -16,7 +16,6 @@ input_channels = 3
 
 config = SearchConfig()
 
-device = torch.device("cuda")
 
 # tensorboard
 writer = SummaryWriter(log_dir=os.path.join(config.path, "tb"))
@@ -54,24 +53,6 @@ def main(train_loader, valid_loader):
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999),
                                    weight_decay=config.alpha_weight_decay)
 
-    # split data to train/validation
-    '''
-    n_train = len(train_data)
-    split = n_train // 2
-    indices = list(range(n_train))
-    
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
-    train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               sampler=train_sampler,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               sampler=valid_sampler,
-                                               num_workers=config.workers,
-                                               pin_memory=True)'''
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
