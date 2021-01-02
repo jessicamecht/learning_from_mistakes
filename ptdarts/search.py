@@ -184,7 +184,6 @@ def validate(valid_loader, model, epoch, cur_step):
     writer.add_scalar('val/top1', top1.avg, cur_step)
     writer.add_scalar('val/top5', top5.avg, cur_step)
 
-    logger.info("Valid: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
     return top1.avg
 
