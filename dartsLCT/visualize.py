@@ -1,5 +1,5 @@
 import sys
-import genotypes
+import dartsLCT.genotypes as genotypes
 from graphviz import Digraph
 
 

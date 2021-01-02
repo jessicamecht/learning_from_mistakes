@@ -9,14 +9,14 @@ import random
 import logging
 import argparse
 import torch.nn as nn
-import genotypes
+import dartsLCT.genotypes as genotypes
 import torch.utils
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torch.backends.cudnn as cudnn
 
 from torch.autograd import Variable
-from model import NetworkImageNet as Network
+from dartsLCT.model import NetworkImageNet as Network
 
 
 parser = argparse.ArgumentParser("training imagenet")

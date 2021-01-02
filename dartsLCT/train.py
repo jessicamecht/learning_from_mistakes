@@ -8,13 +8,13 @@ import utils
 import logging
 import argparse
 import torch.nn as nn
-import genotypes
+import dartsLCT.genotypes as genotypes
 import torch.utils
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
 from torch.autograd import Variable
-from model import NetworkCIFAR as Network
+from dartsLCT.model import NetworkCIFAR as Network
 
 
 parser = argparse.ArgumentParser("cifar")

@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from operations import *
 from torch.autograd import Variable
-from genotypes import PRIMITIVES
-from genotypes import Genotype
+from dartsLCT.genotypes import PRIMITIVES
+from dartsLCT.genotypes import Genotype
 
 
 class MixedOp(nn.Module):

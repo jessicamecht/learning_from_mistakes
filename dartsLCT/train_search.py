@@ -15,8 +15,8 @@ import torch.backends.cudnn as cudnn
 import train_W2
 
 from torch.autograd import Variable
-from model_search import Network
-from architect import Architect
+from dartsLCT.model_search import Network
+from dartsLCT.architect import Architect
 
 
 parser = argparse.ArgumentParser("cifar")

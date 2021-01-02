@@ -15,7 +15,7 @@ import torchvision.transforms as transforms
 import torch.backends.cudnn as cudnn
 
 from torch.autograd import Variable
-from model import NetworkImageNet as Network
+from dartsLCT.model import NetworkImageNet as Network
 
 
 parser = argparse.ArgumentParser("imagenet")

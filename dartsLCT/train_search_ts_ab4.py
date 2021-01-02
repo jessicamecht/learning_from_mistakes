@@ -14,10 +14,10 @@ import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
 from torch.autograd import Variable
-from model_search import Network
-from architect_ts import Architect
-from teacher import *
-from teacher_update_ab4 import *
+from dartsLCT.model_search import Network
+from dartsLCT.architect_ts import Architect
+from dartsLCT.teacher import *
+from dartsLCT.teacher_update_ab4 import *
 
 
 parser = argparse.ArgumentParser("cifar")
