@@ -2,7 +2,7 @@ import update_similarity_weights
 import train_W2
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders, create_clean_initial_weights
 from DARTS_CNN import train_search
-from DARTS_pt4 import search
+from dartsLCT import train_search
 import torch
 
 
@@ -23,8 +23,7 @@ def main():
     #train_W2.main(train_queue)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
-    #train_search.main(train_queue, val_queue)
-    search.main(train_queue, val_queue)
+    train_search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
 
