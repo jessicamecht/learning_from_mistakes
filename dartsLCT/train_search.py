@@ -17,6 +17,7 @@ import train_W2
 from torch.autograd import Variable
 from dartsLCT.model_search import Network
 from dartsLCT.architect import Architect
+import dartsLCT.utils as utils
 
 
 parser = argparse.ArgumentParser("cifar")
@@ -47,7 +48,7 @@ parser.add_argument('--is_cifar100', type=int, default=0)
 args = parser.parse_args()
 
 args.save = 'search-{}-{}'.format(args.save, time.strftime("%Y%m%d-%H%M%S"))
-dartsLCT.utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
+utils.create_exp_dir(args.save, scripts_to_save=glob.glob('*.py'))
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
