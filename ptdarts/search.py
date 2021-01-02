@@ -10,6 +10,7 @@ from ptdarts.models.search_cnn import SearchCNNController
 from ptdarts.architect import Architect
 from ptdarts.visualize import plot
 import train_W2
+import gc
 
 
 config = SearchConfig()
@@ -146,6 +147,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+        gc.collect()
+        torch.cuda.empty_cache()
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
