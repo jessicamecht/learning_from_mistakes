@@ -7,7 +7,7 @@ import utils
 import logging
 import argparse
 import torch.nn as nn
-import genotypes
+import dartsLCT.genotypes as genotypes
 import torch.utils
 import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn

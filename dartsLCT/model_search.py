@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from operations import *
+from dartsLCT.operations import *
 from torch.autograd import Variable
 from dartsLCT.genotypes import PRIMITIVES
 from dartsLCT.genotypes import Genotype

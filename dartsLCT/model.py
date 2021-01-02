@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from operations import *
+from dartsLCT.operations import *
 from torch.autograd import Variable
 from dartsLCT.utils import drop_path
 
