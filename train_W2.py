@@ -102,7 +102,7 @@ def calculate_weighted_loss(input, target, model, criterion, weights):
     weights = torch.tensor(np.array(weights).astype(float)).to(device)
     weighted_loss_individual = preds.float() * weights.float()
     loss = torch.mean(weighted_loss_individual)
-    return loss
+    return loss, logits
 
 if __name__ == "__main__":
     train_data, val_data, test_data = loadCIFARData()

@@ -113,6 +113,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 
+
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)
@@ -122,27 +123,28 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         #logits = model(trn_X)
         #loss = model.criterion(logits, trn_y)
-        loss = train_W2.calculate_weighted_loss(trn_X, trn_y, model, model.criterion, tr_weights)
+
+        loss, logits = train_W2.calculate_weighted_loss(trn_X, trn_y, model, model.criterion, tr_weights)
         loss.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
-        #prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)
-        #top1.update(prec1.item(), N)
-        #top5.update(prec5.item(), N)
+        top1.update(prec1.item(), N)
+        top5.update(prec5.item(), N)
 
-        '''if step % config.print_freq == 0 or step == len(train_loader)-1:
+        if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
                 "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
                     top1=top1, top5=top5))
-        '''
+
         writer.add_scalar('train/loss', loss.item(), cur_step)
-        #writer.add_scalar('train/top1', prec1.item(), cur_step)
-        #writer.add_scalar('train/top5', prec5.item(), cur_step)
+        writer.add_scalar('train/top1', prec1.item(), cur_step)
+        writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))

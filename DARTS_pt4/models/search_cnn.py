@@ -138,12 +138,12 @@ class SearchCNNController(nn.Module):
 
         logger.info("####### ALPHA #######")
         logger.info("# Alpha - normal")
-        for alpha in self.alpha_normal:
-            logger.info(F.softmax(alpha, dim=-1))
+        #for alpha in self.alpha_normal:
+        #    logger.info(F.softmax(alpha, dim=-1))
 
         logger.info("\n# Alpha - reduce")
-        for alpha in self.alpha_reduce:
-            logger.info(F.softmax(alpha, dim=-1))
+        #for alpha in self.alpha_reduce:
+        #    logger.info(F.softmax(alpha, dim=-1))
         logger.info("#####################")
 
         # restore formats
