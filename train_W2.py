@@ -99,6 +99,7 @@ def train(train_queue, model, criterion, optimizer):
 def calculate_weighted_loss(input, target, model, criterion, weights):
     logits = model(input)
     preds = criterion(logits, target)
+    weights = weights.cpu()
     weights = torch.tensor(np.array(weights).astype(float)).to(device)
     weighted_loss_individual = preds.float() * weights.float()
     loss = torch.mean(weighted_loss_individual)
