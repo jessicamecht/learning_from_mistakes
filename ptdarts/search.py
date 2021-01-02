@@ -126,9 +126,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
+        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+
+
         del trn_X, trn_y, weights_train, val_X, val_y, weights_valid
 
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
