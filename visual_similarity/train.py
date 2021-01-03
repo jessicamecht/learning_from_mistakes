@@ -18,10 +18,11 @@ lr = 0.003
 
 def train(train_loader, val_loader):
     model = resnet_model.resnet50(pretrained=False)
+    model = model.to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='none')
+    criterion = criterion.to(device)
     optimizer = optim.Adam(model.fc.parameters(), lr=lr)
-    model.to(device)
 
     steps = 0
     running_loss = 0
@@ -29,6 +30,7 @@ def train(train_loader, val_loader):
     train_losses, val_losses = [], []
     for epoch in range(epochs):
         for inputs, labels, weights in train_loader:
+            model.train()
             steps += 1
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
             optimizer.zero_grad()

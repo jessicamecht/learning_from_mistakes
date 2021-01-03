@@ -4,6 +4,8 @@ from weighted_data_loader import loadCIFARData, getWeightedDataLoaders, create_c
 from DARTS_CNN import train_search
 from ptdarts import search
 import torch
+from visual_similarity import train
+
 
 
 def main():
@@ -26,6 +28,7 @@ def main():
     search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
+    train.train(train_queue, val_queue)
 
     # Third Stage.3: update coefficient vector r by minimizing the validation loss
 
