@@ -62,8 +62,8 @@ def train(train_loader, val_loader):
         running_loss = 0
         model.train()
 
-
-    torch.save(model, '/models/weighted_resnet_model.pth')
+    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    torch.save(model.state_dict(), script_dir + '/state_dicts/weighted_resnet_model.pt')
 
 if __name__ == "__main__":
     train_data, val_data, test_data = loadCIFARData()

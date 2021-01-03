@@ -12,14 +12,17 @@ import time
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def create_visual_feature_extractor_model():
-  resnet_50_model = resnet_model.resnet50(pretrained=True)
+def create_visual_feature_extractor_model(init=False):
+  name = 'weighted_resnet_model' if not init else 'resnet50'
+  resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
   resnet_50_model = resnet_50_model.to(device)
   modules = list(resnet_50_model.children())[:-1]
   resnet_50_model = nn.Sequential(*modules)
   for p in resnet_50_model.parameters():
     p.requires_grad = False
   return resnet_50_model
+
+
 
 def infer_similarities(train_data, train_queue, val_queue):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score'''
