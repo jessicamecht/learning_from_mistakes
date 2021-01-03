@@ -180,7 +180,7 @@ def validate(valid_loader, model, epoch, cur_step):
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
-            del
+            del X, y, weights
             gc.collect()
             torch.cuda.empty_cache()
 
