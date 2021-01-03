@@ -161,12 +161,13 @@ def validate(valid_loader, model, epoch, cur_step):
     model.eval()
 
     with torch.no_grad():
-        for step, (X, y) in enumerate(valid_loader):
-            X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
+        for step, (X, y, weights) in enumerate(valid_loader):
+            X, y, weights = X.to(device, non_blocking=True), y.to(device, non_blocking=True), weights.to(device, non_blocking=True)
             N = X.size(0)
 
-            logits = model(X)
-            loss = model.criterion(logits, y)
+            #logits = model(X)
+            loss, logits = train_W2.calculate_weighted_loss(X, y, model, model.criterion, weights)
+            #loss = model.criterion(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
@@ -179,6 +180,9 @@ def validate(valid_loader, model, epoch, cur_step):
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
+            del
+            gc.collect()
+            torch.cuda.empty_cache()
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)
