@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 import train_W2
-import resnet_model
+import visual_similarity.resnet_model as resnet_model
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 epochs = 1
