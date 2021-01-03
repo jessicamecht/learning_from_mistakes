@@ -11,7 +11,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def visual_validation_similarity(validation_examples, training_examples, model):
     '''function to calculate the image similarities by decoding the images
-    into an embedding space using an autoencoder neural network'''
+    into an embedding space'''
     validation_examples_embedding = extract_resnet_features(validation_examples, model)
     training_examples_embedding = extract_resnet_features(training_examples, model)
     t, v = torch.squeeze(torch.transpose(training_examples_embedding, 1, 2), dim=3), torch.squeeze(validation_examples_embedding, dim=3)

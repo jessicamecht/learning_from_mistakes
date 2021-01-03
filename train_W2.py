@@ -5,9 +5,10 @@ import sys, os
 import torch.nn as nn
 import torch.utils
 import torch.backends.cudnn as cudnn
-from DARTS_CNN import genotypes as genotypes
-import DARTS_CNN.utils as utils
+from ptdarts import genotypes as genotypes
+import ptdarts.utils as utils
 from DARTS_CNN.model import NetworkCIFAR as Network
+from ptdarts.models import search_cnn as search_cnn
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 '''this trains the new set of weights (W2) by minimizing the training loss given a set of weights per training sample'''
@@ -27,7 +28,8 @@ drop_path_prob = 0.2
 save = './EXP'
 grad_clip = 5
 report_freq = 50
-
+n_classes = 10
+input_channels = 3
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -37,14 +39,17 @@ def main(train_queue):
 
     # load the model
     genotype = eval("genotypes.%s" % arch)
-    model = Network(init_channels, CIFAR_CLASSES, layers, auxiliary, genotype)
+    # set reduction to none to be able to weight them individually
+    criterion = nn.CrossEntropyLoss(reduction='none')
+    criterion = criterion.to(device)
+    model = search_cnn.SearchCNNController(input_channels, init_channels, n_classes, layers,
+                                criterion)
+    #model = Network(init_channels, CIFAR_CLASSES, layers, auxiliary, genotype)
     model = model.to(device)
 
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
-    # set reduction to none to be able to weight them individually
-    criterion = nn.CrossEntropyLoss(reduction='none')
-    criterion = criterion.to(device)
+
 
     optimizer = torch.optim.SGD(
         model.parameters(),
@@ -67,7 +72,7 @@ def main(train_queue):
         utils.save(model, os.path.join(save, 'weights_2.pt'))
 
 def train(train_queue, model, criterion, optimizer):
-  objs = utils.AvgrageMeter()
+  objs = utils.AverageMeter()
   model.train()
 
   for step, (input, target, weights) in enumerate(train_queue):

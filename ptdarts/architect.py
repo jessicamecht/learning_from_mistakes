@@ -49,7 +49,7 @@ class Architect():
             for a, va in zip(self.net.alphas(), self.v_net.alphas()):
                 va.copy_(a)
 
-    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
+    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim, weights_train=None, weights_val= None):
         """ Compute unrolled loss and backward its gradients
         Args:
             xi: learning rate for virtual gradient step (same as net lr)

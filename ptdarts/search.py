@@ -15,8 +15,6 @@ import gc
 
 config = SearchConfig()
 
-device = torch.device("cuda")
-
 # tensorboard
 writer = SummaryWriter(log_dir=os.path.join(config.path, "tb"))
 writer.add_text('config', config.as_markdown(), 0)
@@ -79,10 +77,10 @@ def main(train_loader, valid_loader):
         logger.info("genotype = {}".format(genotype))
 
         # genotype as a image
-        plot_path = os.path.join(config.plot_path, "EP{:02d}".format(epoch+1))
+        #plot_path = os.path.join(config.plot_path, "EP{:02d}".format(epoch+1))
         caption = "Epoch {}".format(epoch+1)
-        plot(genotype.normal, plot_path + "-normal", caption)
-        plot(genotype.reduce, plot_path + "-reduce", caption)
+        #plot(genotype.normal, plot_path + "-normal", caption)
+        #plot(genotype.reduce, plot_path + "-reduce", caption)
 
         # save
         if best_top1 < top1:
@@ -108,9 +106,12 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
 
     for step, ((trn_X, trn_y, weights_train), (val_X, val_y, weights_valid)) in enumerate(zip(train_loader, valid_loader)):
+        if step > 0:
+            break
         trn_X, trn_y, weights_train = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True), weights_train.to(device, non_blocking=True)
         val_X, val_y, weights_valid = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True), weights_valid.to(device, non_blocking=True)
         N = trn_X.size(0)
+
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
