@@ -10,6 +10,7 @@ import ptdarts.utils as utils
 from DARTS_CNN.model import NetworkCIFAR as Network
 from ptdarts.models import search_cnn as search_cnn
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+from loss import calculate_weighted_loss
 
 '''this trains the new set of weights (W2) by minimizing the training loss given a set of weights per training sample'''
 
@@ -82,7 +83,7 @@ def train(train_queue, model, criterion, optimizer):
     optimizer.zero_grad()
 
     #calculate the weighted loss
-    loss = calculate_weighted_loss(input, target, model, criterion, weights)
+    loss, logits = calculate_weighted_loss(input, target, model, criterion, weights)
 
     loss.backward()
     nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
@@ -95,20 +96,12 @@ def train(train_queue, model, criterion, optimizer):
     assert(not torch.isnan(target).any())
     assert(not torch.isnan(weights).any())
 
-
     if step % report_freq == 0:
       logging.info('train %03d %e', step, objs.avg)
 
   return objs.avg
 
-def calculate_weighted_loss(input, target, model, criterion, weights):
-    logits = model(input)
-    preds = criterion(logits, target)
-    weights = weights.cpu()
-    weights = torch.tensor(np.array(weights).astype(float)).to(device)
-    weighted_loss_individual = preds.float() * weights.float()
-    loss = torch.mean(weighted_loss_individual)
-    return loss, logits
+
 
 if __name__ == "__main__":
     train_data, val_data, test_data = loadCIFARData()

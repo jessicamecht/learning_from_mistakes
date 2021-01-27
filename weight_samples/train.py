@@ -1,66 +1,64 @@
+import numpy as np
 import torch
-import torch.nn as nn
-from torch import optim
-import torch.nn.functional as F
-import os, sys
+import os,sys
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
-import train_W2
-import visual_similarity.resnet_model as resnet_model
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-epochs = 1
-print_every = 2
-lr = 0.003
+lr = 0.01
+epochs = 100
+print_every = 10
+inputSize = 3*32*32
 
-def train(train_loader, val_loader):
-    model = resnet_model.resnet50(pretrained=False)
+class LinearRegression(torch.nn.Module):
+    def __init__(self, input_size, output_size):
+        super(LinearRegression, self).__init__()
+        self.linear = torch.nn.Linear(input_size, output_size)
+
+    def forward(self, x):
+        return self.linear(x)
+
+def train(train_loader, valid_loader):
+    model = LinearRegression(inputSize, output_size)
     model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss(reduction='none')
-    criterion = criterion.to(device)
-    optimizer = optim.Adam(model.fc.parameters(), lr=lr)
+    criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 
-    running_loss = 0
-
-    train_losses, val_losses = [], []
     for epoch in range(epochs):
+        # Converting inputs and labels to Variable
         for steps, (inputs, labels, weights) in enumerate(train_loader):
-            model.train()
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
             optimizer.zero_grad()
 
-            loss, logps = train_W2.calculate_weighted_loss(inputs, labels, model, criterion, weights)
+            outputs = model(inputs)
+
+            loss = criterion(outputs, labels)
+            print(loss)
+            # get gradients w.r.t to parameters
             loss.backward()
+
+            # update parameters
             optimizer.step()
-            running_loss += loss.item()
 
             if steps % print_every == 0:
                 val_loss = 0
                 accuracy = 0
                 model.eval()
                 with torch.no_grad():
-                    for inputs, labels, weights in val_loader:
+                    for inputs, labels, weights in valid_loader:
                         inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
                     logps = model.forward(inputs)
                     batch_loss = torch.mean(criterion(logps, labels))
                     val_loss += batch_loss.item()
-
                     ps = torch.exp(logps)
                     top_p, top_class = ps.topk(1, dim=1)
                     equals = top_class == labels.view(*top_class.shape)
-                accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-        train_losses.append(running_loss / len(train_loader))
-        val_losses.append(val_loss / len(val_loader))
-        print(f"Epoch {epoch + 1}/{epochs}.. "
-              f"Train loss: {running_loss / print_every:.3f}.. "
-              f"Validation loss: {val_loss / len(val_loader):.3f}.. "
-              f"Validation accuracy: {accuracy / len(val_loader):.3f}")
-        running_loss = 0
-        model.train()
+            accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+            print('epoch {}, loss {}'.format(epoch, loss.item()))
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     torch.save(model.state_dict(), script_dir + '/state_dicts/weighted_resnet_model.pt')

@@ -44,13 +44,12 @@ def get_initial_model(init_channels, CIFAR_CLASSES, layers, auxiliary):
   genotype = eval("genotypes.%s" % args.arch)
   model = Network(init_channels, CIFAR_CLASSES, layers, auxiliary, genotype)
   model = model.to(device)
+  print(args.model_path, 'args.model_path')
   utils.load(model, args.model_path)
   model.drop_path_prob = args.drop_path_prob
   return model
 
-
 def main():
-
   np.random.seed(args.seed)
   if device != 'cpu':
     torch.cuda.set_device(args.gpu)

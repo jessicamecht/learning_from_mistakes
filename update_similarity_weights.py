@@ -4,30 +4,16 @@ from DARTS_CNN import test
 import utils
 from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
-from sample_weights import sample_weights
+from weight_samples.sample_weights import sample_weights
 import numpy as np
-from visual_similarity.visual_similarity import resnet_model
 import time
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-def create_visual_feature_extractor_model(init=False):
-  name = 'weighted_resnet_model' if not init else 'resnet50'
-  resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
-  resnet_50_model = resnet_50_model.to(device)
-  modules = list(resnet_50_model.children())[:-1]
-  resnet_50_model = nn.Sequential(*modules)
-  for p in resnet_50_model.parameters():
-    p.requires_grad = False
-  return resnet_50_model
-
+from utils import create_visual_feature_extractor_model
 
 
 def infer_similarities(train_data, train_queue, val_queue):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score'''
 
-  model = test.get_initial_model(16, 10, 20, True)
+  model = test.get_initial_model(16, 10, 20, True) # why do I set the channels like that?
   model = model.to(device)
 
   criterion = nn.CrossEntropyLoss(reduction='none')
