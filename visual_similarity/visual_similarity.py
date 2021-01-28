@@ -1,40 +1,36 @@
 import torch
 import torch.nn as nn
 import os, sys
-from visual_similarity import resnet_model
 torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def visual_validation_similarity(validation_examples, training_examples, model):
-    '''function to calculate the image similarities by decoding the images
-    into an embedding space'''
-    validation_examples_embedding = extract_resnet_features(validation_examples, model)
-    training_examples_embedding = extract_resnet_features(training_examples, model)
-    t, v = torch.squeeze(torch.transpose(training_examples_embedding, 1, 2), dim=3), torch.squeeze(validation_examples_embedding, dim=3)
+    '''function to calculate the image similarities of training and validation examples by decoding the images
+    into an embedding space
+    :param validation_examples torch of size (number of val images, channels, height, width)
+    :param training_examples torch of size (number of training images, channels, height, width)
+    :param model: model to get the features for each image with
+    :returns visual_similarity torch of size (number val examples,number train examples)'''
+    print(validation_examples.shape,training_examples.shape )
 
-    x_ij_num = torch.exp(torch.bmm(t,v))
+    #create the features
+    validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
+    training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
 
-    expanded_t = training_examples_embedding.unsqueeze(1).repeat(1, 256, 1, 1, 1)
+    #dot product of each training with each validation sample V(d_tr)*V(d_val)
+    x_ij_num = torch.exp(torch.mm(validation_embedding, training_embedding.T)) # (number val examples,number train examples)
+    assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
+    x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
+    assert(x_ij_denom.shape[0] == training_embedding.shape[0])
+    visual_similarity = x_ij_num/x_ij_denom
+    assert (visual_similarity.shape[0] == validation_embedding.shape[0] and visual_similarity.shape[1] == training_embedding.shape[0])
+    return visual_similarity
 
-    expanded_t = torch.squeeze(expanded_t, dim=3)
-    validation_examples_embedding = torch.squeeze(validation_examples_embedding, dim=3)
-    dot_products = []
-    for elem in expanded_t:
-        dot_product = torch.bmm(elem.view(256, 1, 2048), validation_examples_embedding.view(256, 2048, 1))
-        assert (not torch.isnan(dot_product).any())
-        dot_products.append(dot_product)
-    dot_products = torch.cat(dot_products, dim=1)
-    assert (not torch.isnan(dot_products).any())
-    x_ijh_denom = torch.sum(
-        torch.exp(dot_products),
-        dim=1)
-    similarity = x_ij_num / x_ijh_denom
-    assert(not torch.isnan(similarity).any())
-    return similarity
 
 def extract_resnet_features(images, model):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
@@ -43,7 +39,17 @@ def extract_resnet_features(images, model):
     with torch.no_grad():
         features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
         features = features_var.data # get the tensor out of the variable
-    return features
+    return torch.squeeze(features)
+
+def create_visual_feature_extractor_model(init=False):
+  name = 'weighted_resnet_model' if not init else 'resnet50'
+  resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
+  resnet_50_model = resnet_50_model.to(device)
+  modules = list(resnet_50_model.children())[:-1]
+  resnet_50_model = nn.Sequential(*modules)
+  for p in resnet_50_model.parameters():
+    p.requires_grad = False
+  return resnet_50_model
 
 
 if __name__ == "__main__":
@@ -51,6 +57,5 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
     train_imgs, train_targets, train_weights = next(iter(train_loader))
     val_imgs, val_targets, val_weights = next(iter(val_loader))
-
-    print(extract_resnet_features(train_imgs).shape)
-    print(visual_validation_similarity(train_imgs, val_imgs).shape)
+    feature_extractor_model = create_visual_feature_extractor_model(init=True)
+    print(visual_validation_similarity(train_imgs, val_imgs, feature_extractor_model).shape)
