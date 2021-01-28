@@ -1,81 +1,61 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
 from DARTS_CNN import test
-import utils
 from visual_similarity.visual_similarity import visual_validation_similarity
 from label_similarity.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
-import numpy as np
-import time
-from utils import create_visual_feature_extractor_model
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def infer_similarities(train_data, train_queue, val_queue):
-  '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score'''
+  '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score and saves it to file for the dataset
+  :param train_data
+  :param train_queue training loader
+  :param val_queue validation loader'''
 
-  model = test.get_initial_model(16, 10, 20, True) # why do I set the channels like that?
+  ######## Setup DARTS pretrained model
+  model = test.get_initial_model(36, 10, 20, True)
   model = model.to(device)
 
   criterion = nn.CrossEntropyLoss(reduction='none')
   criterion = criterion.to(device)
 
-  feature_extractor_model = create_visual_feature_extractor_model()
-
   model.eval()
+  val_data = next(iter(val_queue))
+  val_input, val_target = val_data[0].to(device), val_data[1].to(device)
+  with torch.no_grad(): # we do not need gradients for these calculations
 
-  for step, data_label in enumerate(val_queue):
-    val_input, val_target = data_label[0].to(device), data_label[1].to(device)
-    with torch.no_grad(): # we do not need gradients for these calculations
-      input = val_input.to(device)
-      target = val_target.to(device)
+    ######## Predictive Performance
+    # the predictive performance is the negative cross entropy loss for all validation examples
+    logits, _ = model(val_input)
+    loss = criterion(logits, val_target) * -1 # TODO check if this is actually correct
+    loss = loss.to(device)
+    assert(loss.shape == val_target.shape)
 
-      # the predictive performance is the negative cross entropy loss
-      # TODO check if this is actually correct
-      tic = time.perf_counter()
-      logits, _ = model(input)
-      loss = criterion(logits, target)
-      toc = time.perf_counter()
-      #print(f"Calculating the loss took {toc - tic:0.4f} seconds")
+    for i, elem in enumerate(train_queue):
+      train_input, train_target = elem[0].to(device), elem[1].to(device)
 
-      print("Progress of weight calculation: ", utils.progress(step, len(val_queue), val_queue))
+      ######### Label Similarity
+      # for each training example batch, calculate the similarity to the validation samples and
+      # combine them to the overall training instance weight
+      label_similarity = measure_label_similarity(val_target, train_target).to(device)
+      ######### Visual Similarity
+      visual_similarity = visual_validation_similarity(val_input, train_input, init=True).to(device)
 
-      for i, elem in enumerate(train_queue):
-        train_input, train_target = elem[0].to(device), elem[1].to(device)
+      r = torch.ones(val_target.shape[0], 1).to(device)
+      weights = sample_weights(loss, visual_similarity, label_similarity, r)
+      weights = weights.reshape(weights.shape[0],)
 
+      #get the indices in the dataset for which the weights were calculated in this iteration
+      indices = np.array(train_data.indices)[list(range(i*train_target.shape[0],(i+1)*train_target.shape[0]))]
 
-        # for each training example batch, calculate the similarity to the validation samples and
-        # combine them to the overall training instance weight
-        tic = time.perf_counter()
-        label_similarity = measure_label_similarity(train_target, val_target).to(device)
-        toc = time.perf_counter()
-        #print(f"Calculating the label_similarity took {toc - tic:0.4f} seconds")
+      weights = weights.cpu()
 
-        tic = time.perf_counter()
-        visual_similarity = visual_validation_similarity(val_input, train_input, feature_extractor_model).to(device)
-        toc = time.perf_counter()
-        #print(f"Calculating the visual_similarity took {toc - tic:0.4f} seconds")
-
-        tic = time.perf_counter()
-        loss = loss.to(device)
-        weights = sample_weights(loss, visual_similarity, label_similarity)
-        toc = time.perf_counter()
-        #print(f"Calculating the sample_weights took {toc - tic:0.4f} seconds")
-
-
-
-        #get the indices in the dataset for which the weights were calculated in this iteration
-        tic = time.perf_counter()
-        indices = np.array(train_data.indices)[list(range(i*train_target.shape[0],(i+1)*train_target.shape[0]))]
-        toc = time.perf_counter()
-        #print(f"slicing indices took {toc - tic:0.4f} seconds")
-
-        weights = weights.cpu()
-
-        #update the weights in the dataset
-        tic = time.perf_counter()
-        train_data.dataset.regenerate_instance_weights(indices, weights)
-        toc = time.perf_counter()
-        #print(f"regenerate_instance_weights took {toc - tic:0.4f} seconds")
+      #update the weights in the dataset
+      assert(indices.shape == weights.shape)
+      train_data.dataset.regenerate_instance_weights(indices, weights)
 
 
 if __name__ =="__main__":
