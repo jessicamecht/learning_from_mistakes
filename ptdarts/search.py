@@ -126,10 +126,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
         prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
-
-
         del trn_X, trn_y, weights_train, val_X, val_y, weights_valid
-
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
@@ -164,8 +161,8 @@ def validate(valid_loader, model, epoch, cur_step):
             N = X.size(0)
 
             logits = model(X)
-            loss = train.calculate_weighted_loss(logits, y, model.criterion, weights)
-            #loss = model.criterion(logits, y)
+            #loss = train.calculate_weighted_loss(logits, y, model.criterion, weights) #does this make sense?
+            loss = model.criterion(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)

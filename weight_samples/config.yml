@@ -13,3 +13,5 @@ save: '/weight_samples/weights'
 grad_clip: 5
 n_classes: 10
 input_channels: 3
+aux_weight: 0.4
+input_size: 32
