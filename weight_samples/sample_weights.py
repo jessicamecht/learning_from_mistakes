@@ -1,32 +1,35 @@
 import torch
-import time
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def calculate_similarities(predictive_performance, visual_similarity_scores, label_similarity_scores):
-    pred_perf = predictive_performance.view(predictive_performance.shape[0], 1, 1)
+    '''calculates the element wise multiplication of the three inputs
+    multiplies all elements of each row element wise and
+    :param predictive_performance torch of size (number train examples)
+    :param visual_similarity_scores torch of size (number train examples, number val examples)
+    :param label_similarity_scores torch of size (number train examples, number val examples)
+    :return torch of size (number train examples, number val examples)'''
+    predictive_performance = predictive_performance.reshape(predictive_performance.shape[0], 1).T
+    repeated_pred_perf = predictive_performance.repeat_interleave(visual_similarity_scores.shape[0], dim=0)
+    assert(visual_similarity_scores.shape == label_similarity_scores.shape == repeated_pred_perf.shape)
+    return visual_similarity_scores * label_similarity_scores * repeated_pred_perf
 
-    elem_sim_mult = visual_similarity_scores * label_similarity_scores.unsqueeze(2)
-    elem_sim_mult = elem_sim_mult * pred_perf
-    return elem_sim_mult
+def sample_weights(predictive_performance, visual_similarity_scores, label_similarity_scores, r):
+    '''performs the multiplication with coefficient vector r and squishes everything using sigmoid
+    :param predictive_performance torch of size (number train examples)
+    :param visual_similarity_scores torch of size (number train examples, number val examples)
+    :param label_similarity_scores torch of size (number train examples, number val examples)
+    :param r coefficient torch tensor of size (number val examples, 1)
+    :returns tensor of size (number train examples, 1)'''
+    similiarities = calculate_similarities(predictive_performance, visual_similarity_scores, label_similarity_scores)
+    dp = torch.mm(similiarities, r)
+    a = torch.sigmoid(dp)
+    assert(a.shape[0]== visual_similarity_scores.shape[0])
+    return a
 
-def sample_weights(predictive_performance, visual_similarity_scores, label_similarity_scores):
-    elem_sim_mult = calculate_similarities(predictive_performance, visual_similarity_scores, label_similarity_scores)
-
-    #dimension check
-    assert(elem_sim_mult.shape[0] == label_similarity_scores.shape[0])
-    assert (elem_sim_mult.shape[1] == label_similarity_scores.shape[0])
-    #assert(elem_sim_mult.shape[2] == visual_similarity_scores.shape[2])
-    r = torch.ones(elem_sim_mult.shape)
-    transp = torch.transpose(elem_sim_mult, 1, 2)
-
-    #TODO this is the part that takes the longest - investigate for speed improvements
-    tic = time.perf_counter()
-    r = r.to(device)
-    d = torch.bmm(transp, r)
-    d = d.view(d.shape[0])
-    toc = time.perf_counter()
-    overall_similarity = torch.sigmoid(d)
-    #dimension check
-    assert(overall_similarity.shape[0] == predictive_performance.shape[0])
-    return overall_similarity
+if __name__ == "__main__":
+    pp = torch.zeros(20)
+    vs = torch.zeros(10,20)
+    ls = torch.zeros(10,20)
+    print(calculate_similarities(pp,vs,ls).shape)
+    print(sample_weights(pp, vs, ls).shape)
