@@ -64,7 +64,7 @@ def main():
   cudnn.enabled=True
   torch.cuda.manual_seed(args.seed)
   logging.info('gpu device = %d' % args.gpu)
-  logging.info("args = %s", args)
+  #logging.info("args = %s", args)
 
   genotype = eval("genotypes.%s" % args.arch)
   model = Network(args.init_channels, CIFAR_CLASSES, args.layers, args.auxiliary, genotype)

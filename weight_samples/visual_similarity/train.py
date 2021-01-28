@@ -1,28 +1,23 @@
 import torch
 import torch.nn as nn
 from torch import optim
-import torch.nn.functional as F
 import os, sys
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+from weight_samples import train
+import weight_samples.visual_similarity.resnet_model as resnet_model
 
-
-from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
-import train_W2
-import visual_similarity.resnet_model as resnet_model
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-epochs = 1
-print_every = 2
-lr = 0.003
 
-def train(train_loader, val_loader):
+def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
     model = resnet_model.resnet50(pretrained=False)
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='none')
     criterion = criterion.to(device)
-    optimizer = optim.Adam(model.fc.parameters(), lr=lr)
+    optimizer = optim.Adam(model.fc.parameters(), lr=learning_rate)
 
     running_loss = 0
 
@@ -32,13 +27,13 @@ def train(train_loader, val_loader):
             model.train()
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
             optimizer.zero_grad()
-
-            loss, logps = train_W2.calculate_weighted_loss(inputs, labels, model, criterion, weights)
+            logits = model(inputs)
+            loss = train.calculate_weighted_loss(logits, labels, criterion, weights)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
 
-            if steps % print_every == 0:
+            if steps % 50 == 0:
                 val_loss = 0
                 accuracy = 0
                 model.eval()

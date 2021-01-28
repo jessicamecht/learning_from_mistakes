@@ -1,7 +1,14 @@
 import torch
 import torch.nn as nn
+import yaml
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+def load_config(path):
+    """
+    Load the configuration from config.yaml.
+    """
+    return yaml.load(open(path, 'r'), Loader=yaml.SafeLoader)
 
 
 def progress(batch_idx, len_epoch, data_loader):

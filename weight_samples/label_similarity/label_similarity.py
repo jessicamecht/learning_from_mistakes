@@ -2,7 +2,7 @@ import os, sys
 import torch
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 def measure_label_similarity(validation_targets, training_targets):
     '''checks for each training and test label if they are the same

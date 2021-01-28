@@ -8,8 +8,7 @@ from ptdarts.config import SearchConfig
 import ptdarts.utils as utils
 from ptdarts.models.search_cnn import SearchCNNController
 from ptdarts.architect import Architect
-from ptdarts.visualize import plot
-import train_W2
+from weight_samples import train
 import gc
 
 
@@ -118,8 +117,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        #logits = model(trn_X)
-        loss, logits = train_W2.calculate_weighted_loss(trn_X, trn_y, model, model.criterion, weights_train)
+        logits = model(trn_X)
+        loss = train.calculate_weighted_loss(logits, trn_y, model.criterion, weights_train)
 
         #loss = model.criterion(logits, trn_y)
         loss.backward()
@@ -164,8 +163,8 @@ def validate(valid_loader, model, epoch, cur_step):
             X, y, weights = X.to(device, non_blocking=True), y.to(device, non_blocking=True), weights.to(device, non_blocking=True)
             N = X.size(0)
 
-            #logits = model(X)
-            loss, logits = train_W2.calculate_weighted_loss(X, y, model, model.criterion, weights)
+            logits = model(X)
+            loss = train.calculate_weighted_loss(logits, y, model.criterion, weights)
             #loss = model.criterion(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))

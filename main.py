@@ -1,37 +1,40 @@
-import update_similarity_weights
-import train_W2
-from weighted_data_loader import loadCIFARData, getWeightedDataLoaders, create_clean_initial_weights
-from DARTS_CNN import train_search
+from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders, create_clean_initial_weights
+from weight_samples.visual_similarity import train as train_visual_embedding
+from coefficient_update import train as train_coefficient_update
+from utils import load_config
 from ptdarts import search
-import torch
-from visual_similarity import train
-from coefficient_update import update_coefficients
+from weight_samples import update_similarity_weights
+from weight_samples import train
 
 def main():
     # load data
-    #create_clean_initial_weights('./data/', 'cifar-10-batches-py')
+    create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
+    # First Stage: use pretrained DARTS Architecture get calculate network weights W1 by minimizing training loss,
+    # then apply to validation set and see how it performs TODO add one forward pass for validation example to have a baseline
 
-    # First Stage: uses pretrained DARTS Architecture (weights W1), calculates similarity weights
-    # for each training sample and updates them in the dataset instance_weights.npy
-
-    update_similarity_weights.infer_similarities(train_data, train_queue, val_queue)
+    # Use validation performance to re-weight each training example with three scores
+    # for each training sample and update them in instance_weights.npy
+    #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
-    train_W2.main(train_queue)
+    w2_config = load_config('weight_samples/config.yml')
+    train.main(train_queue, w2_config) #-> check the two sets of weights think about a way to visualize it
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
-    train.train(train_queue, val_queue)
+    vis_config = load_config('weight_samples/visual_similarity/config.yml')
+    train_visual_embedding.train(train_queue, val_queue, vis_config['learning_rate'], vis_config['epochs'])
 
     # Third Stage.3: update coefficient vector r by minimizing the validation loss
     # Given the learned Architecture and image embedding, do a linear regression to obtain the coefficient vector r
-    update_coefficients.main(train_queue, val_queue)
+    coeff_config = load_config('./coefficient_update/config.yml')
+    train_coefficient_update.train(train_queue, val_queue, coeff_config['learning_rate'], coeff_config['epochs'])
 
 if __name__ == "__main__":
     main()

@@ -3,13 +3,14 @@ import torch.nn as nn
 import numpy as np
 
 from DARTS_CNN import test
-from visual_similarity.visual_similarity import visual_validation_similarity
-from label_similarity.label_similarity import measure_label_similarity
+from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
+from weight_samples.label_similarity.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
+from utils import progress
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def infer_similarities(train_data, train_queue, val_queue):
+def calculate_similarity_weights(train_data, train_queue, val_queue):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score and saves it to file for the dataset
   :param train_data
   :param train_queue training loader
@@ -36,6 +37,7 @@ def infer_similarities(train_data, train_queue, val_queue):
 
     for i, elem in enumerate(train_queue):
       train_input, train_target = elem[0].to(device), elem[1].to(device)
+      print('Similarity weight calculation', progress(i, len(train_queue), train_queue))
 
       ######### Label Similarity
       # for each training example batch, calculate the similarity to the validation samples and
@@ -56,6 +58,7 @@ def infer_similarities(train_data, train_queue, val_queue):
       #update the weights in the dataset
       assert(indices.shape == weights.shape)
       train_data.dataset.regenerate_instance_weights(indices, weights)
+
 
 
 if __name__ =="__main__":

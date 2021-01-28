@@ -4,8 +4,8 @@ import os, sys
 torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from weighted_data_loader import loadCIFARData, getWeightedDataLoaders
-from visual_similarity import resnet_model
+from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
+from weight_samples.visual_similarity import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -30,7 +30,6 @@ def visual_validation_similarity(validation_examples, training_examples, init=Fa
     visual_similarity = x_ij_num/x_ij_denom
     assert (visual_similarity.shape[0] == validation_embedding.shape[0] and visual_similarity.shape[1] == training_embedding.shape[0])
     return visual_similarity.T
-
 
 def extract_resnet_features(images, model):
     '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image

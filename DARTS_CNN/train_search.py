@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 import glob
@@ -9,13 +8,11 @@ import logging
 import argparse
 import torch.nn as nn
 import torch.utils
-import torch.nn.functional as F
-import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 
 from DARTS_CNN.model_search import Network
 from DARTS_CNN.architect import Architect
-import train_W2
+from weight_samples import train
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
@@ -73,7 +70,7 @@ def main(train_queue, valid_queue):
   cudnn.enabled=True
   torch.cuda.manual_seed(args.seed)
   logging.info('gpu device = %d' % args.gpu)
-  logging.info("args = %s", args)
+  #logging.info("args = %s", args)
 
   print("Max memory allocated: ", max_mem())
 
@@ -160,7 +157,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
 
     optimizer.zero_grad()
     logits = model(input)
-    loss = train_W2.calculate_weighted_loss(input, target, model, criterion, weights)
+    loss = train.calculate_weighted_loss(logits, target, criterion, weights)
     #loss = criterion(logits, target)
 
     loss.backward()
