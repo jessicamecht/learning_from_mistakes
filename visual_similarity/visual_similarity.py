@@ -33,7 +33,10 @@ def visual_validation_similarity(validation_examples, training_examples, model):
 
 
 def extract_resnet_features(images, model):
-    '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image'''
+    '''loads a resnet pretrained model for CIFAR and gets features from the second to last layer for each image
+    :param images torch of size (number images, channels, height, width)
+    :param model torch model to extract features with
+    :returns torch of size (number images, number features)'''
     img_var = images
     model.eval()
     with torch.no_grad():
@@ -42,6 +45,10 @@ def extract_resnet_features(images, model):
     return torch.squeeze(features)
 
 def create_visual_feature_extractor_model(init=False):
+  '''instantiates the pretrained resnet model
+   :param init Boolean chooses pretrained resnet 50 or the updated weighted resnet model
+   :returns instantiated torch nn model '''
+
   name = 'weighted_resnet_model' if not init else 'resnet50'
   resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
   resnet_50_model = resnet_50_model.to(device)
