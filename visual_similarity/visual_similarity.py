@@ -16,8 +16,7 @@ def visual_validation_similarity(validation_examples, training_examples, model):
     :param training_examples torch of size (number of training images, channels, height, width)
     :param model: model to get the features for each image with
     :returns visual_similarity torch of size (number val examples,number train examples)'''
-    print(validation_examples.shape,training_examples.shape )
-
+    
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
