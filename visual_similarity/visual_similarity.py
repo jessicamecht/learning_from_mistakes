@@ -9,14 +9,15 @@ import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def visual_validation_similarity(validation_examples, training_examples, model):
+def visual_validation_similarity(validation_examples, training_examples, init=False):
     '''function to calculate the image similarities of training and validation examples by decoding the images
     into an embedding space
     :param validation_examples torch of size (number of val images, channels, height, width)
     :param training_examples torch of size (number of training images, channels, height, width)
-    :param model: model to get the features for each image with
-    :returns visual_similarity torch of size (number val examples,number train examples)'''
-    
+    :param init: Boolean to indicate which feature extractor to use
+    :returns visual_similarity torch of size (number train examples, number val examples)'''
+
+    model = create_visual_feature_extractor_model(init)
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
