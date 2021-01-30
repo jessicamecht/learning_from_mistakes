@@ -7,6 +7,9 @@ from tensorboardX import SummaryWriter
 from ptdarts.config import AugmentConfig
 import ptdarts.utils as utils
 from ptdarts.models.augment_cnn import AugmentCNN
+import ptdarts.genotypes as gt
+
+
 
 
 config = AugmentConfig()
@@ -21,7 +24,8 @@ logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)
 config.print_params(logger.info)
 
 
-def main():
+def main(in_size, train_loader, valid_loader, genotype):
+    genotype = gt.from_str(genotype)
     logger.info("Logger is set - training start")
 
     # set default gpu device id
@@ -35,13 +39,12 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     # get data with meta info
-    input_size, input_channels, n_classes, train_data, valid_data = utils.get_data(
-        config.dataset, config.data_path, config.cutout_length, validation=True)
+    input_size, input_channels, n_classes = in_size, 3, 10
 
     criterion = nn.CrossEntropyLoss().to(device)
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
-                       use_aux, config.genotype)
+                       use_aux, genotype)
     model = nn.DataParallel(model, device_ids=config.gpus).to(device)
 
     # model size
@@ -52,16 +55,6 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), config.lr, momentum=config.momentum,
                                 weight_decay=config.weight_decay)
 
-    train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               shuffle=True,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(valid_data,
-                                               batch_size=config.batch_size,
-                                               shuffle=False,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, config.epochs)
 
     best_top1 = 0.

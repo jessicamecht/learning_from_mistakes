@@ -2,9 +2,10 @@ from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoade
 from weight_samples.visual_similarity import train as train_visual_embedding
 from coefficient_update import train as train_coefficient_update
 from utils import load_config
-from ptdarts import search
-from weight_samples import update_similarity_weights
-from weight_samples import train
+from ptdarts import augment
+from weight_samples import update_similarity_weights, train
+from utils import initial_model
+
 
 def main():
     # load data
@@ -12,17 +13,26 @@ def main():
 
     train_data, val_data, test_data = loadCIFARData()
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-    # First Stage: use pretrained DARTS Architecture get calculate network weights W1 by minimizing training loss,
-    # then apply to validation set and see how it performs TODO add one forward pass for validation example to have a baseline
+    # First Stage: calculate network weights W1 with fixed architectiure A by minimizing training loss,
+    # then apply to validation set and see how it performs
+
+    genotype = "Genotype(normal=[[('sep_conv_3x3', 0), ('dil_conv_5x5', 1)], [('skip_connect', 0), ('dil_conv_3x3', 2)], " \
+                   "[('sep_conv_3x3', 1), ('skip_connect', 0)], [('sep_conv_3x3', 1), ('skip_connect', 0)]]," \
+                   "normal_concat=range(2, 6)," \
+                   "reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)]," \
+                   "[('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]]," \
+                   "reduce_concat=range(2, 6))"
+    w_config = load_config('weight_samples/config.yml')
+    in_size = train_data[0][0].shape[1]
+    augment.main(in_size, train_queue, val_queue, genotype)
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
-    #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue)
+    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
-    w2_config = load_config('weight_samples/config.yml')
-    train.main(train_queue, w2_config) #-> check the two sets of weights think about a way to visualize it
+    train.main(train_queue, val_queue, w_config, weight_samples=True, save_name='W2') #-> check the two sets of weights think about a way to visualize it
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     search.main(train_queue, val_queue)

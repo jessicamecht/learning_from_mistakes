@@ -7,7 +7,6 @@ from coefficient_update.model import LinearRegression
 from loss import calculate_weighted_loss
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
 from weight_samples.label_similarity.label_similarity import measure_label_similarity
-from DARTS_CNN import test
 from weight_samples.sample_weights import calculate_similarities
 from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 

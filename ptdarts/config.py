@@ -99,8 +99,6 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--cutout_length', type=int, default=16, help='cutout length')
         parser.add_argument('--drop_path_prob', type=float, default=0.2, help='drop path prob')
 
-        parser.add_argument('--genotype', required=True, help='Cell genotype')
-
         return parser
 
     def __init__(self):
@@ -110,5 +108,4 @@ class AugmentConfig(BaseConfig):
 
         self.data_path = './data/'
         self.path = os.path.join('augments', self.name)
-        self.genotype = gt.from_str(self.genotype)
         self.gpus = parse_gpus(self.gpus)
