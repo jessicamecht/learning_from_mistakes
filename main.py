@@ -32,8 +32,7 @@ def main():
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
-    #TODO adapt augment to include weights
-    augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
+    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     #search.main(train_queue, val_queue)
