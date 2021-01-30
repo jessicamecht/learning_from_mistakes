@@ -51,7 +51,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=1):
         train_losses.append(running_loss / len(train_loader))
         val_losses.append(val_loss / len(val_loader))
         print(f"Epoch {epoch + 1}/{epochs}.. "
-              f"Train loss: {running_loss / print_every:.3f}.. "
+              f"Train loss: {running_loss / 50:.3f}.. "
               f"Validation loss: {val_loss / len(val_loader):.3f}.. "
               f"Validation accuracy: {accuracy / len(val_loader):.3f}")
         running_loss = 0
