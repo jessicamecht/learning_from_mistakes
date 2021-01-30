@@ -30,7 +30,8 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
         for step, loader in enumerate(val_queue):
             val_input, val_target = loader[0].to(device), loader[1].to(device)
             for step, (train_input, train_target, _) in enumerate(train_queue):
-
+                train_target = train_target.to(device)
+                train_input = train_input.to(device)
                 ######### Label Similarity
                 label_similarity = measure_label_similarity(val_target, train_target).to(device)
                 ######### Visual Similarity
