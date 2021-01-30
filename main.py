@@ -35,7 +35,7 @@ def main():
     model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
-    search.main(train_queue, val_queue)
+    #search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     vis_config = load_config('weight_samples/visual_similarity/config.yml')
