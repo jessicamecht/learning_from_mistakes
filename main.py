@@ -10,7 +10,6 @@ def main():
     #create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
-    print(train_data)
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
     # First Stage: calculate network weights W1 with fixed architectiure A by minimizing training loss,
     # then apply to validation set and see how it performs
@@ -22,19 +21,19 @@ def main():
                    "reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)]," \
                    "[('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]]," \
                    "reduce_concat=range(2, 6))"
-    w_config = load_config('weight_samples/config.yml')
     in_size = train_data[0][0].shape[1]
-    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
+    #model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
     print("Update Similarity weights")
+    w_config = load_config('weight_samples/config.yml')
     #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
     print("Start Stage 2")
-    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
+    #model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
@@ -43,7 +42,7 @@ def main():
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
     vis_config = load_config('weight_samples/visual_similarity/config.yml')
-    train_visual_embedding.train(train_queue, val_queue, vis_config['learning_rate'], vis_config['epochs'])
+    #train_visual_embedding.train(train_queue, val_queue, vis_config['learning_rate'], vis_config['epochs'])
 
     # Third Stage.3: update coefficient vector r by minimizing the validation loss
     # Given the learned Architecture and image embedding, do a linear regression to obtain the coefficient vector r
