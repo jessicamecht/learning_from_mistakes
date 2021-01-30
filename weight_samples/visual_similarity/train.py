@@ -5,8 +5,8 @@ import os, sys
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
-from weight_samples import train
 import weight_samples.visual_similarity.resnet_model as resnet_model
+from loss import calculate_weighted_loss
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -28,7 +28,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
             optimizer.zero_grad()
             logits = model(inputs)
-            loss = train.calculate_weighted_loss(logits, labels, criterion, weights)
+            loss = calculate_weighted_loss(logits, labels, criterion, weights)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
