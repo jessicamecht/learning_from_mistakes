@@ -41,7 +41,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 predictive_performance = criterion(val_logits, val_target)
                 predictive_performance = predictive_performance.to(device)
                 ######### Overall Similarity
-                similarities = calculate_similarities(predictive_performance, visual_similarity, label_similarity)
+                similarities = calculate_similarities(predictive_performance, visual_similarity, label_similarity).to(device)
                 ######### s^Tw
                 logits_r = model(similarities)
                 ######### get weights
