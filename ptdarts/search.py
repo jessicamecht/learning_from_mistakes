@@ -10,6 +10,7 @@ from ptdarts.models.search_cnn import SearchCNNController
 from ptdarts.architect import Architect
 from weight_samples import train
 import gc
+from loss import calculate_weighted_loss
 
 
 config = SearchConfig()
@@ -118,7 +119,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # phase 1. child network step (w)
         w_optim.zero_grad()
         logits = model(trn_X)
-        loss = train.calculate_weighted_loss(logits, trn_y, model.criterion, weights_train)
+        loss = calculate_weighted_loss(logits, trn_y, nn.CrossEntropyLoss(reduction='none'), weights_train)
 
         #loss = model.criterion(logits, trn_y)
         loss.backward()
