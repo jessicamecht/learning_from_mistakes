@@ -49,7 +49,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 ## calculate the training loss with the training weights
                 optimizer.zero_grad()
                 logits_p, _ = pred_model(train_input)
-                cpu_weights = weights.cpu().detach().numpy()
+                cpu_weights = weights.detach()
                 loss = calculate_weighted_loss(logits_p,train_target, criterion, cpu_weights)
                 loss.backward()
                 optimizer.step()
