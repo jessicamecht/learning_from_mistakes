@@ -102,7 +102,7 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples):
         optimizer.zero_grad()
         logits, aux_logits = model(X)
         loss = calculate_weighted_loss(logits, y, criterion, w, reduce=False) if weight_samples else criterion(logits, y)
-        print('loss', calculate_weighted_loss(logits, y, criterion, w, reduce=False).shape, criterion(logits, y).shape)
+        print('loss', calculate_weighted_loss(logits, y, criterion, w, reduce=False), criterion(logits, y))
         if config.aux_weight > 0.:
             loss += config.aux_weight * criterion(aux_logits, y)
         loss.backward()

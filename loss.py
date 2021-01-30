@@ -15,5 +15,4 @@ def calculate_weighted_loss(logits, target, criterion, weights, reduce=True):
     weights = torch.tensor(np.array(weights).astype(float)).to(device)
     weighted_loss_individual = loss.float() * weights.float()
     loss = torch.mean(weighted_loss_individual) if reduce else weighted_loss_individual
-    print('weighted_loss_individual', weighted_loss_individual.shape, reduce)
     return loss
