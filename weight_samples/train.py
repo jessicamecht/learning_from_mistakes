@@ -7,7 +7,7 @@ import torch.backends.cudnn as cudnn
 import ptdarts.utils as utils
 from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 from loss import calculate_weighted_loss
-from utils import progress, initial_model
+from utils import progress
 
 '''this trains the new set of weights by minimizing the (weighted) training loss'''
 

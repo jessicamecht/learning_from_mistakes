@@ -9,9 +9,6 @@ import ptdarts.utils as utils
 from ptdarts.models.augment_cnn import AugmentCNN
 import ptdarts.genotypes as gt
 
-
-
-
 config = AugmentConfig()
 
 device = torch.device("cuda")
