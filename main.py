@@ -22,16 +22,16 @@ def main():
                    "reduce_concat=range(2, 6))"
     w_config = load_config('weight_samples/config.yml')
     in_size = train_data[0][0].shape[1]
-    augment.main(in_size, train_queue, val_queue, genotype)
+    #augment.main(in_size, train_queue, val_queue, genotype)
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
-    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue, w_config)
+    #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
     #TODO adapt augment to include weights
-    train.main(train_queue, val_queue, w_config, weight_samples=True, save_name='W2') #-> check the two sets of weights think about a way to visualize it
+    augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     #search.main(train_queue, val_queue)

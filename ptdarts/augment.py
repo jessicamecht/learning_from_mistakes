@@ -21,7 +21,7 @@ logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)
 config.print_params(logger.info)
 
 
-def main(in_size, train_loader, valid_loader, genotype):
+def main(in_size, train_loader, valid_loader, genotype, weight_samples):
     genotype = gt.from_str(genotype)
     logger.info("Logger is set - training start")
 
@@ -38,7 +38,8 @@ def main(in_size, train_loader, valid_loader, genotype):
     # get data with meta info
     input_size, input_channels, n_classes = in_size, 3, 10
 
-    criterion = nn.CrossEntropyLoss().to(device)
+    criterion = nn.CrossEntropyLoss(reduction='none') if weight_samples else nn.CrossEntropyLoss()
+    criterion = criterion.to(device)
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
                        use_aux, genotype)
@@ -140,7 +141,7 @@ def validate(valid_loader, model, criterion, epoch, cur_step):
             N = X.size(0)
 
             logits, _ = model(X)
-            loss = criterion(logits, y)
+            loss = calculate_weighted_loss(logits, y, criterion, w) if weight_samples else criterion(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
