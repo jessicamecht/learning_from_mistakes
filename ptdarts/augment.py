@@ -104,8 +104,7 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples):
         loss = calculate_weighted_loss(logits, y, criterion, w) if weight_samples else criterion(logits, y)
         print('loss', calculate_weighted_loss(logits, y, criterion, w))
         if config.aux_weight > 0.:
-            print(config.aux_weight, criterion(aux_logits, y))
-            loss += config.aux_weight * criterion(aux_logits, y)
+            loss += config.aux_weight * (calculate_weighted_loss(aux_logits, y, criterion, w) if weight_samples else criterion(aux_logits, y))
         loss.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
