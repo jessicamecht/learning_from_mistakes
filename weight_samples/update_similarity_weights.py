@@ -7,14 +7,14 @@ from weight_samples.sample_weights import sample_weights
 from utils import progress
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def calculate_similarity_weights(train_data, train_queue, val_queue, config):
+
+def calculate_similarity_weights(train_data, train_queue, model, val_queue, config):
   '''calls calculations for predictive performance, label and visual similarity and calculates the overall similarity score and saves it to file for the dataset
   :param train_data
   :param train_queue training loader
   :param val_queue validation loader'''
 
   ######## Setup DARTS pretrained model
-  model = initial_model(config)
   model = model.to(device)
 
   criterion = nn.CrossEntropyLoss(reduction='none')

@@ -80,6 +80,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
         print("")
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
+    return model
 
 
 def train(train_loader, model, optimizer, criterion, epoch):
