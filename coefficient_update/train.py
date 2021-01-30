@@ -23,7 +23,7 @@ def train(train_queue, val_queue, learning_rate=0.01, epochs=100):
     model = LinearRegression(inputDim, outputDim)
 
     criterion = nn.CrossEntropyLoss(reduction='none')
-    optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     pred_model = test.get_initial_model(36, 10, 20, True)
     pred_model.eval()
 
