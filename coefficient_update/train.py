@@ -14,7 +14,7 @@ from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoade
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def train(train_queue, val_queue, learning_rate=0.01, epochs=100):
+def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
     '''Linear regression neural network which searches for the perfect coefficient vector for the training sample similiarities
     :param train_queue training data loader
     :param val_queue validation data loader '''
@@ -24,7 +24,6 @@ def train(train_queue, val_queue, learning_rate=0.01, epochs=100):
 
     criterion = nn.CrossEntropyLoss(reduction='none')
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-    pred_model = test.get_initial_model(36, 10, 20, True)
     pred_model.eval()
 
     for epoch in range(epochs):

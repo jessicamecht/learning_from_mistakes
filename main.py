@@ -22,7 +22,7 @@ def main():
                    "[('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]]," \
                    "reduce_concat=range(2, 6))"
     in_size = train_data[0][0].shape[1]
-    #model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
+    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
@@ -36,8 +36,8 @@ def main():
     #model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True)
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
-    print("Start Architecture Search")
-    #search.main(train_queue, val_queue)
+    print("Start Architecture Search")#TODO get model from search
+    #model = search.main(train_queue, val_queue)
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
@@ -48,7 +48,7 @@ def main():
     # Given the learned Architecture and image embedding, do a linear regression to obtain the coefficient vector r
     print("Update Coefficient Vector")
     coeff_config = load_config('./coefficient_update/config.yml')
-    train_coefficient_update.train(train_queue, val_queue, coeff_config['learning_rate'], coeff_config['epochs'])
+    train_coefficient_update.train(train_queue, val_queue, model, coeff_config['learning_rate'], coeff_config['epochs'])
 
 if __name__ == "__main__":
     main()
