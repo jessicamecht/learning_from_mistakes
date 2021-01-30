@@ -8,7 +8,7 @@ from ptdarts.config import AugmentConfig
 import ptdarts.utils as utils
 from ptdarts.models.augment_cnn import AugmentCNN
 import ptdarts.genotypes as gt
-
+from loss import calculate_weighted_loss
 config = AugmentConfig()
 
 device = torch.device("cuda")
@@ -67,7 +67,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, criterion, epoch, cur_step)
+        top1 = validate(valid_loader, model, criterion, epoch, cur_step, weight_samples)
 
         # save
         if best_top1 < top1:
@@ -129,7 +129,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, criterion, epoch, cur_step):
+def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
