@@ -7,7 +7,7 @@ arch: 'DARTS'
 learning_rate: 0.025
 momentum: 0.9
 weight_decay: 0.0003
-epochs: 600
+epochs: 1
 drop_path_prob: 0.2
 save: '/weight_samples/weights'
 grad_clip: 5
