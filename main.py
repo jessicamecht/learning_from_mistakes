@@ -28,7 +28,7 @@ def main():
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
 
-    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, val_queue, w_config)
+    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
