@@ -93,7 +93,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
 
     model.train()
 
-    for step, (X, y) in enumerate(train_loader):
+    for step, (X, y, w) in enumerate(train_loader):
         X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
         N = X.size(0)
 
@@ -135,7 +135,7 @@ def validate(valid_loader, model, criterion, epoch, cur_step):
     model.eval()
 
     with torch.no_grad():
-        for step, (X, y) in enumerate(valid_loader):
+        for step, (X, y, w) in enumerate(valid_loader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             N = X.size(0)
 
