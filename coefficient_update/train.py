@@ -21,7 +21,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
     inputDim = next(iter(val_queue))[0].shape[0]
     outputDim = next(iter(val_queue))[0].shape[0]
     model = LinearRegression(inputDim, outputDim)
-
+    model = model.to(device)
     criterion = nn.CrossEntropyLoss(reduction='none')
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     pred_model.eval()
