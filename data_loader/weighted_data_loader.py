@@ -4,6 +4,8 @@ from torchvision.datasets import CIFAR10
 from typing import Any, Callable, Optional, Tuple
 import os
 import numpy as np
+from torch.utils.data.sampler import SubsetRandomSampler
+
 
 class WeightedCIFAR(CIFAR10):
     '''initialized the weighted CIFAR dataset with its instance weights
@@ -48,9 +50,9 @@ def loadCIFARData(root = 'data'):
 
 def getWeightedDataLoaders(train_data, val_data, test_data,batch_size = 64):
     '''creates dataloader for train, test and validation sets including a weight variable'''
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=1, pin_memory=True, drop_last=True)
-    val_loader = torch.utils.data.DataLoader(val_data, 20, num_workers=1, pin_memory=True, drop_last=True)
-    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=1, pin_memory=True, drop_last=True)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size, num_workers=1, pin_memory=True, drop_last=True, sampler=SubsetRandomSampler(range(100)))#, shuffle=True,)
+    val_loader = torch.utils.data.DataLoader(val_data, 20, num_workers=1, pin_memory=True, drop_last=True, sampler=SubsetRandomSampler(range(100)))
+    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=1, pin_memory=True, drop_last=True, sampler=SubsetRandomSampler(range(100)))
     return train_loader, val_loader, test_loader
 
 
