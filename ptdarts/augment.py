@@ -63,7 +63,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
         model.module.drop_path_prob(drop_prob)
 
         # training
-        train(train_loader, model, optimizer, criterion, epoch)
+        train(train_loader, model, optimizer, criterion, epoch, weight_samples)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
@@ -83,7 +83,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
     return model
 
 
-def train(train_loader, model, optimizer, criterion, epoch):
+def train(train_loader, model, optimizer, criterion, epoch, weight_samples):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -101,7 +101,8 @@ def train(train_loader, model, optimizer, criterion, epoch):
 
         optimizer.zero_grad()
         logits, aux_logits = model(X)
-        loss = criterion(logits, y)
+        loss = calculate_weighted_loss(logits, y, criterion, w) if weight_samples else criterion(logits, y)
+        print('loss', loss)
         if config.aux_weight > 0.:
             loss += config.aux_weight * criterion(aux_logits, y)
         loss.backward()
@@ -144,6 +145,7 @@ def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples):
 
             logits, _ = model(X)
             loss = calculate_weighted_loss(logits, y, criterion, w) if weight_samples else criterion(logits, y)
+            print('loss', loss)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)

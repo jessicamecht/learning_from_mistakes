@@ -7,7 +7,7 @@ from weight_samples import update_similarity_weights, train
 
 def main():
     # load data
-    create_clean_initial_weights('./data/', 'cifar-10-batches-py')
+    #create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
     print(train_data)
@@ -23,12 +23,12 @@ def main():
                    "reduce_concat=range(2, 6))"
     w_config = load_config('weight_samples/config.yml')
     in_size = train_data[0][0].shape[1]
-    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
+    #model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False)
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
 
-    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
+    #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
