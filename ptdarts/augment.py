@@ -124,6 +124,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+        break
 
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
