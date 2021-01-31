@@ -44,6 +44,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 similarities = calculate_similarities(predictive_performance, visual_similarity, label_similarity).to(device)
                 ######### s^Tw
                 logits_r = model(similarities)
+                print(logits_r.shape, similarities.shape)
                 ######### get weights
                 weights = torch.sigmoid(logits_r)
                 ## calculate the training loss with the training weights
