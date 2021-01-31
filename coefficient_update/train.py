@@ -25,8 +25,6 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
     criterion = nn.CrossEntropyLoss(reduction='none')
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     pred_model.eval()
-    script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    torch.save(model.state_dict(), script_dir + '/coefficient_update/weights/r.pt')
 
     for epoch in range(epochs):
         for step, loader in enumerate(val_queue):
@@ -59,7 +57,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 val_loss = criterion(val_logits, val_target)
                 print('Update Coefficients: Epoch {}, Train loss {}, Val loss {}'.format(epoch, loss.item(), val_loss))
                 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                torch.save(model.state_dict(), script_dir+'weights/r.pt')
+                torch.save(model.state_dict(), script_dir + '/coefficient_update/weights/r.pt')
 
 
 if __name__ == "__main__":
