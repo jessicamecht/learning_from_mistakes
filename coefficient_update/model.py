@@ -8,5 +8,5 @@ class LinearRegression(torch.nn.Module):
     def forward(self, x):
         out = self.linear(x)
         print('out', out.shape, x.shape)
-        print('weight', self.weight.shape)
+        print('weight', self.linear.weight.shape)
         return out
