@@ -56,8 +56,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
 
                 val_loss = criterion(val_logits, val_target)
                 print('Update Coefficients: Epoch {}, Train loss {}, Val loss {}'.format(epoch, loss.item(), val_loss))
-                script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                torch.save(model.state_dict(), os.path.join(script_dir, 'weights/' + 'r.pt'))
+                torch.save(model.state_dict(), './weights/' + 'r.pt')
 
 
 if __name__ == "__main__":
