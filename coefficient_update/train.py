@@ -58,6 +58,7 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 print('Update Coefficients: Epoch {}, Train loss {}, Val loss {}'.format(epoch, loss.item(), val_loss.item()))
                 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 torch.save(model.state_dict(), script_dir + '/coefficient_update/weights/r.pt')
+                break
 
 
 if __name__ == "__main__":
