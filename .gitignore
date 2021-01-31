@@ -4,3 +4,5 @@ data/
 DARTS_pt4/searchs/
 searchs/
 weight_sampes/state_dicts
+visual_similarity/weights
+augments/
