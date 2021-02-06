@@ -8,7 +8,7 @@ import os
 
 def main():
     # load data
-    #create_clean_initial_weights('./data/', 'cifar-10-batches-py')
+    create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
