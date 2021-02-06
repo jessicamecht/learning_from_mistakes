@@ -13,15 +13,14 @@ config = AugmentConfig()
 
 device = torch.device("cuda")
 
-# tensorboard
-writer = SummaryWriter(log_dir=os.path.join(config.path, "tb"))
-writer.add_text('config', config.as_markdown(), 0)
 
-logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
-config.print_params(logger.info)
+def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_path):
+    # tensorboard
+    writer = SummaryWriter(log_dir=os.path.join(config_path, "tb"))
+    writer.add_text('config', config.as_markdown(), 0)
 
-
-def main(in_size, train_loader, valid_loader, genotype, weight_samples):
+    logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name)))
+    config.print_params(logger.info)
     genotype = gt.from_str(genotype)
     logger.info("Logger is set - training start")
 
@@ -63,11 +62,11 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
         model.module.drop_path_prob(drop_prob)
 
         # training
-        train(train_loader, model, optimizer, criterion, epoch, weight_samples)
+        train(train_loader, model, optimizer, criterion, epoch, weight_samples, logger, writer)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, criterion, epoch, cur_step, weight_samples)
+        top1 = validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer)
 
         # save
         if best_top1 < top1:
@@ -75,7 +74,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
             is_best = True
         else:
             is_best = False
-        utils.save_checkpoint(model, config.path, is_best)
+        utils.save_checkpoint(model, config_path, is_best)
 
         print("")
 
@@ -83,7 +82,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples):
     return model
 
 
-def train(train_loader, model, optimizer, criterion, epoch, weight_samples):
+def train(train_loader, model, optimizer, criterion, epoch, weight_samples, logger, writer):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -130,7 +129,7 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples):
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples):
+def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
