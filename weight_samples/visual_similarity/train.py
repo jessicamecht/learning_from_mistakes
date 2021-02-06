@@ -11,7 +11,7 @@ from loss import calculate_weighted_loss
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def train(train_loader, val_loader, learning_rate=0.001, epochs=1):
+def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
     model = resnet_model.resnet50(pretrained=False)
     model = model.to(device)
 
@@ -56,12 +56,6 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=1):
               f"Validation accuracy: {accuracy / len(val_loader):.3f}")
         running_loss = 0
         model.train()
-        break
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     torch.save(model.state_dict(), script_dir + '/state_dicts/weighted_resnet_model.pt')
-
-if __name__ == "__main__":
-    train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-    train(train_queue, val_queue)

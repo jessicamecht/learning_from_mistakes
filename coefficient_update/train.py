@@ -8,7 +8,6 @@ from loss import calculate_weighted_loss
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
 from weight_samples.label_similarity.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import calculate_similarities
-from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -58,12 +57,4 @@ def train(train_queue, val_queue, pred_model, learning_rate=0.01, epochs=100):
                 print('Update Coefficients: Epoch {}, Train loss {}, Val loss {}'.format(epoch, loss.item(), val_loss))
                 script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 torch.save(model.state_dict(), script_dir + '/coefficient_update/weights/r.pt')
-                break
-
-
-if __name__ == "__main__":
-    train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-
-    main(train_queue, val_queue)
 

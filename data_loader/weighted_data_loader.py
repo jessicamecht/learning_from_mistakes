@@ -71,8 +71,3 @@ transform_test = transforms.Compose([
 def create_clean_initial_weights(root, base_folder):
     ones = np.ones(50000)
     np.save(os.path.join(root, base_folder, "instance_weights.npy"), ones)
-
-if __name__ == "__main__":
-    train_data, val_data, test_data = loadCIFARData()
-    train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-    print(next(iter(test_data)))

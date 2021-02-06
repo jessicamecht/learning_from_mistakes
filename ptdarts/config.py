@@ -54,7 +54,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--print_freq', type=int, default=50, help='print frequency')
         parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
                             '`all` indicates use all gpus.')
-        parser.add_argument('--epochs', type=int, default=1, help='# of training epochs')
+        parser.add_argument('--epochs', type=int, default=100, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=16)
         parser.add_argument('--layers', type=int, default=8, help='# of layers')
         parser.add_argument('--seed', type=int, default=2, help='random seed')
@@ -90,7 +90,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--print_freq', type=int, default=200, help='print frequency')
         parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
                             '`all` indicates use all gpus.')
-        parser.add_argument('--epochs', type=int, default=1, help='# of training epochs')
+        parser.add_argument('--epochs', type=int, default=100, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=36)
         parser.add_argument('--layers', type=int, default=20, help='# of layers')
         parser.add_argument('--seed', type=int, default=2, help='random seed')

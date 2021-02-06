@@ -116,7 +116,7 @@ def benchmark(name, N, func, func_args, sanity=None):
         copy_time += cpy
         total_time += tot
         if args.sanity and i == N-1:
-            print(next(res.weights()).view(-1)[:10])
+            #print(next(res.weights()).view(-1)[:10])
             if sanity:
                 maxdiff = 0.
                 for (fn, fw), sw in zip(sanity.named_parameters(), res.parameters()):

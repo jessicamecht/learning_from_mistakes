@@ -55,8 +55,3 @@ def calculate_similarity_weights(train_data, train_queue, model, val_queue, conf
       #update the weights in the dataset
       assert(indices.shape == weights.shape)
       train_data.dataset.regenerate_instance_weights(indices, weights)
-
-
-
-if __name__ =="__main__":
-    weights = infer_similarities()

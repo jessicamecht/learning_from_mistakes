@@ -22,12 +22,3 @@ def measure_label_similarity(validation_targets, training_targets):
     val_train_equality = (val_train_diff == 0).float()
     return val_train_equality
 
-
-if __name__ == "__main__":
-    train_data, val_data, test_data = loadCIFARData()
-    train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
-    train_imgs, train_targets, train_weights = next(iter(train_loader))
-    val_imgs, val_targets, val_weights = next(iter(val_loader))
-    print(measure_label_similarity(val_targets, train_targets).shape)
-
-

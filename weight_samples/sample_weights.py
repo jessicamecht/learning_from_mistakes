@@ -26,10 +26,3 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     a = torch.sigmoid(dp)
     assert(a.shape[0]== visual_similarity_scores.shape[0])
     return a
-
-if __name__ == "__main__":
-    pp = torch.zeros(20)
-    vs = torch.zeros(10,20)
-    ls = torch.zeros(10,20)
-    print(calculate_similarities(pp,vs,ls).shape)
-    print(sample_weights(pp, vs, ls).shape)

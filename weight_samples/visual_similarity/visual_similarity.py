@@ -56,12 +56,3 @@ def create_visual_feature_extractor_model(init=False):
   for p in resnet_50_model.parameters():
     p.requires_grad = False
   return resnet_50_model
-
-
-if __name__ == "__main__":
-    train_data, val_data, test_data = loadCIFARData()
-    train_loader, val_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
-    train_imgs, train_targets, train_weights = next(iter(train_loader))
-    val_imgs, val_targets, val_weights = next(iter(val_loader))
-    feature_extractor_model = create_visual_feature_extractor_model(init=True)
-    print(visual_validation_similarity(train_imgs, val_imgs, feature_extractor_model).shape)

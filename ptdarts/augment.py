@@ -76,7 +76,6 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
             is_best = False
         utils.save_checkpoint(model, config_path, is_best)
 
-        print("")
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     return model
@@ -124,7 +123,6 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples, logg
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
-        break
 
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
@@ -155,7 +153,6 @@ def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, lo
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
-            break
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)
