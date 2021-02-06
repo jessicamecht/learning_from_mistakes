@@ -87,7 +87,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--grad_clip', type=float, default=5.,
                             help='gradient clipping for weights')
         parser.add_argument('--print_freq', type=int, default=200, help='print frequency')
-        parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
+        parser.add_argument('--gpus', default='all', help='gpu device ids separated by comma. '
                             '`all` indicates use all gpus.')
         parser.add_argument('--epochs', type=int, default=100, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=36)

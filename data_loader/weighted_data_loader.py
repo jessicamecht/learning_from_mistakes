@@ -30,7 +30,6 @@ class WeightedCIFAR(CIFAR10):
 
     def regenerate_instance_weights(self, update_idxs, update_values):
         '''updates the instance weights in the dataset and the csv file'''
-        #TODO, check if changes are reflected immediately
         instance_weight_np = np.array(self.instance_weights)
         instance_weight_np[update_idxs] = update_values
         self.instance_weights = instance_weight_np
