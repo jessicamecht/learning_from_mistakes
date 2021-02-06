@@ -8,7 +8,6 @@ from ptdarts.config import SearchConfig
 import ptdarts.utils as utils
 from ptdarts.models.search_cnn import SearchCNNController
 from ptdarts.architect import Architect
-from weight_samples import train
 import gc
 from loss import calculate_weighted_loss
 
