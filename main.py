@@ -3,7 +3,7 @@ from weight_samples.visual_similarity import train as train_visual_embedding
 from coefficient_update import train as train_coefficient_update
 from utils import load_config
 from ptdarts import augment, search
-from weight_samples import update_similarity_weights, train
+from weight_samples import update_similarity_weights
 import os
 
 def main():
