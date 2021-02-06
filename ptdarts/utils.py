@@ -108,7 +108,9 @@ def accuracy(output, target, topk=(1,)):
 
 def save_checkpoint(state, ckpt_dir, is_best=False):
     filename = os.path.join(ckpt_dir, 'checkpoint.pth.tar')
+    print("saves checkpoint in at path: ", ckpt_dir)
     torch.save(state, filename)
     if is_best:
+        print("saves best checkpoint at path: ", ckpt_dir)
         best_filename = os.path.join(ckpt_dir, 'best.pth.tar')
         shutil.copyfile(filename, best_filename)
