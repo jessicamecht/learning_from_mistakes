@@ -25,7 +25,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
     logger.info("Logger is set - training start")
 
     # set default gpu device id
-    #torch.cuda.set_device(0)
+    torch.cuda.set_device(config.gpus[0])
 
     # set seed
     np.random.seed(config.seed)
