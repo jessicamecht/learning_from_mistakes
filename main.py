@@ -4,11 +4,8 @@ from coefficient_update import train as train_coefficient_update
 from utils import load_config
 from ptdarts import augment, search
 from weight_samples import update_similarity_weights
-from ptdarts.models.augment_cnn import AugmentCNN
 import os
-import torch.nn as nn
 import torch
-import ptdarts.genotypes as gt
 
 device = torch.device("cuda")
 
@@ -33,9 +30,6 @@ def main():
     device_ids =  list(range(torch.cuda.device_count()))
     path = os.path.join('augments', 'W1')
     #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
-    genotype = gt.from_str(genotype)
-    model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
-    model = nn.DataParallel(model, device_ids=device_ids).to(device)
     model = torch.load(path + '/best.pth.tar').module
 
     # Use validation performance to re-weight each training example with three scores
@@ -49,20 +43,13 @@ def main():
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
     _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
-    model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
-    model = nn.DataParallel(model, device_ids=device_ids).to(device)
-    model.load_state_dict(torch.load(path + '/best.pth.tar'))
+    model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
     path = os.path.join('searchs')
     model = search.main(train_queue, val_queue, path)
-    with open(path + '/genotype.txt', 'r') as file:
-        best_genotype_str = file.read().replace('\n', '')
-    best_genotype = gt.from_str(best_genotype_str)
-    best_model = AugmentCNN(in_size, 3, 36, 10, 20, True, best_genotype)
-    model = nn.DataParallel(best_model, device_ids=device_ids).to(device)
-    best_model.load_state_dict(torch.load(path + '/best.pth.tar'))
+    best_model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
