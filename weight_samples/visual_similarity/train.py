@@ -43,6 +43,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
                     for inputs, labels, weights in val_loader:
                         inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
                         logits = model.forward(inputs)
+                        print(logits.shape)
                         loss = calculate_weighted_loss(logits, labels, criterion, weights)
                         val_loss += loss.item()
 
