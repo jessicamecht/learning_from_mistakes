@@ -4,15 +4,19 @@ from coefficient_update import train as train_coefficient_update
 from utils import load_config
 from ptdarts import augment, search
 from weight_samples import update_similarity_weights
+from ptdarts.models.augment_cnn import AugmentCNN
 import os
+import torch
+import ptdarts.genotypes as gt
+
 
 def main():
     # load data
     create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data)
-    # First Stage: calculate network weights W1 with fixed architectiure A by minimizing training loss,
+    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
+    # First Stage: calculate network weights W1 with fixed architecture A by minimizing training loss,
     # then apply to validation set and see how it performs
     print("Start Stage 1")
 
@@ -22,9 +26,13 @@ def main():
                    "reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)]," \
                    "[('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]]," \
                    "reduce_concat=range(2, 6))"
+
     in_size = train_data[0][0].shape[1]
     path = os.path.join('augments', 'W1')
-    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
+    genotype = gt.from_str(genotype)
+    model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
+    model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
@@ -36,11 +44,19 @@ def main():
     # set of weights given the DARTS architecture by minimizing weighted training loss
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
-    model = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
+    model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
+    model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
-    model = search.main(train_queue, val_queue)
+    path = os.path.join('searchs')
+    model = search.main(train_queue, val_queue, path)
+    with open(path + '/genotype.txt', 'r') as file:
+        best_genotype_str = file.read().replace('\n', '')
+    best_genotype = gt.from_str(best_genotype_str)
+    best_model = AugmentCNN(in_size, 3, 36, 10, 20, True, best_genotype)
+    best_model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
@@ -54,6 +70,7 @@ def main():
     train_coefficient_update.train(train_queue, val_queue, model, coeff_config['learning_rate'], coeff_config['epochs'])
 
     #Stage 4, use the updated architecture, embedding, r and check validation loss
+
 
 if __name__ == "__main__":
     main()

@@ -14,16 +14,14 @@ from loss import calculate_weighted_loss
 
 config = SearchConfig()
 
-# tensorboard
-writer = SummaryWriter(log_dir=os.path.join(config.path, "tb"))
-writer.add_text('config', config.as_markdown(), 0)
-
-logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
-config.print_params(logger.info)
-
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def main(train_loader, valid_loader):
+def main(train_loader, valid_loader, config_path):
+    writer = SummaryWriter(log_dir=os.path.join(config_path, "tb"))
+    writer.add_text('config', config.as_markdown(), 0)
+
+    logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name)))
+    config.print_params(logger.info)
     logger.info("Logger is set - training start")
 
     # set default gpu device id
@@ -40,6 +38,7 @@ def main(train_loader, valid_loader):
     n_classes = 10
 
     net_crit = nn.CrossEntropyLoss().to(device)
+    #TODO add load model from checkpoint here
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
@@ -85,10 +84,17 @@ def main(train_loader, valid_loader):
         if best_top1 < top1:
             best_top1 = top1
             best_genotype = genotype
+            genotype_txt = open("genotype.txt", "w")
+            n = genotype_txt.write(best_genotype)
+            genotype_txt.close()
+
             is_best = True
         else:
             is_best = False
-        utils.save_checkpoint(model, config.path, is_best)
+        state = {'epoch': epoch + 1, 'state_dict': model.state_dict(),
+                 'w_optim': w_optim.state_dict(), "alpha_optim": alpha_optim.state_dict()}
+        utils.save_checkpoint(state, config_path + 'resume_checkpoints')
+        utils.save_checkpoint(model, config_path, is_best)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
