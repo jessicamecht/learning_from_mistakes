@@ -7,6 +7,8 @@ from weight_samples import update_similarity_weights
 from ptdarts.models.augment_cnn import AugmentCNN
 import os
 import torch
+import ptdarts.genotypes as gt
+
 
 def main():
     # load data
@@ -24,9 +26,11 @@ def main():
                    "reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)]," \
                    "[('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]]," \
                    "reduce_concat=range(2, 6))"
+
     in_size = train_data[0][0].shape[1]
     path = os.path.join('augments', 'W1')
     #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
+    genotype = gt.from_str(genotype)
     model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
     model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
@@ -49,7 +53,8 @@ def main():
     path = os.path.join('searchs')
     model = search.main(train_queue, val_queue, path)
     with open(path + '/genotype.txt', 'r') as file:
-        best_genotype = file.read().replace('\n', '')
+        best_genotype_str = file.read().replace('\n', '')
+    best_genotype = gt.from_str(best_genotype_str)
     best_model = AugmentCNN(in_size, 3, 36, 10, 20, True, best_genotype)
     best_model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
