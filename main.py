@@ -36,8 +36,7 @@ def main():
     genotype = gt.from_str(genotype)
     model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
     model = nn.DataParallel(model, device_ids=device_ids).to(device)
-    state_dict = torch.load(path + '/best.pth.tar')
-    model.load_state_dict(state_dict)
+    model = torch.load(path + '/best.pth.tar').module
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
