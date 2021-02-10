@@ -19,9 +19,10 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
     optimizer = optim.Adam(model.fc.parameters(), lr=learning_rate)
 
     train_losses, val_losses = [], []
-    train_accuracy, val_accuracy = [],[]
+
     for epoch in range(epochs):
         running_loss = 0
+        running_accuracy = 0
         for steps, (inputs, labels, weights) in enumerate(train_loader):
             model.train()
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
@@ -31,6 +32,11 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
+
+            ps = torch.exp(logits)
+            top_p, top_class = ps.topk(1, dim=1)
+            equals = top_class == labels.view(*top_class.shape)
+            running_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
             if steps % 10 == 0:
                 model.eval()
@@ -51,7 +57,8 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
                 train_losses.append(running_loss / len(train_loader))
 
                 print(f"Epoch {epoch + 1}/{epochs}.. "
-                    f"Train loss: {running_loss / 10:.3f}.. "
+                    f"Train loss: {running_loss / steps:.3f}.. "
+                    f"Train accuracy: {running_accuracy / steps:.3f}.. "
                     f"Validation loss: {val_loss / len(val_loader):.3f}.. "
                     f"Validation accuracy: {accuracy / len(val_loader):.3f}")
 
