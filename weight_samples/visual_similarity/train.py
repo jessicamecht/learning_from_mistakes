@@ -48,7 +48,6 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
 
                         _, preds = torch.max(logits, 1)
                         running_val_corrects += torch.sum(preds == labels)
-                        print(running_val_corrects, running_corrects)
                 print(f"Epoch: {epoch}.. "
                     f"Train loss: {running_loss / steps:.3f}.. "
                     f"Train accuracy: {running_corrects / steps:.3f}.. "
