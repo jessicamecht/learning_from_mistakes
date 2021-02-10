@@ -40,8 +40,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
     criterion = nn.CrossEntropyLoss(reduction='none') if weight_samples else nn.CrossEntropyLoss()
     criterion = criterion.to(device)
     use_aux = config.aux_weight > 0.
-    model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
-                       use_aux, genotype)
+    model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers, use_aux, genotype)
     model = nn.DataParallel(model, device_ids=config.gpus).to(device)
 
     # model size
