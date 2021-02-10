@@ -18,11 +18,10 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
     criterion = criterion.to(device)
     optimizer = optim.Adam(model.fc.parameters(), lr=learning_rate)
 
-    train_losses, val_losses = [], []
 
     for epoch in range(epochs):
-        running_loss = 0
-        running_accuracy = 0
+        running_loss = 0.0
+        running_corrects = 0
         for steps, (inputs, labels, weights) in enumerate(train_loader):
             model.train()
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
@@ -31,36 +30,29 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             loss = calculate_weighted_loss(logits, labels, criterion, weights)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item()
+            running_loss += loss.item() * inputs.size(0)
 
-            ps = torch.exp(logits)
-            top_p, top_class = ps.topk(1, dim=1)
-            equals = top_class == labels.view(*top_class.shape)
-            running_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
+            _, preds = torch.max(logits, 1)
+            running_corrects += torch.sum(preds == labels)
 
             if steps % 10 == 0 and steps != 0:
                 model.eval()
                 with torch.no_grad():
                     val_loss = 0
-                    accuracy = 0
+                    running_val_corrects = 0
                     for inputs, labels, weights in val_loader:
                         inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
-                        logps = model.forward(inputs)
-                        batch_loss = torch.mean(criterion(logps, labels))
-                        val_loss += batch_loss.item()
+                        logits = model.forward(inputs)
+                        loss = calculate_weighted_loss(logits, labels, criterion, weights)
+                        val_loss += loss.item()
 
-                        ps = torch.exp(logps)
-                        top_p, top_class = ps.topk(1, dim=1)
-                        equals = top_class == labels.view(*top_class.shape)
-                        accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-                val_losses.append(val_loss / len(val_loader))
-                train_losses.append(running_loss / len(train_loader))
-
+                        _, preds = torch.max(logits, 1)
+                        running_val_corrects += torch.sum(preds == labels)
                 print(f"Epoch: {epoch}.. "
                     f"Train loss: {running_loss / steps:.3f}.. "
-                    f"Train accuracy: {running_accuracy / steps:.3f}.. "
+                    f"Train accuracy: {running_corrects / steps:.3f}.. "
                     f"Validation loss: {val_loss / len(val_loader):.3f}.. "
-                    f"Validation accuracy: {accuracy / len(val_loader):.3f}")
+                    f"Validation accuracy: {running_val_corrects / len(val_loader):.3f}")
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     torch.save(model.state_dict(), script_dir + '/state_dicts/weighted_resnet_model.pt')
