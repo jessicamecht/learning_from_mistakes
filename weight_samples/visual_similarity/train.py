@@ -48,8 +48,8 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
                         _, preds = torch.max(logits, 1)
                         running_val_corrects += torch.sum(preds == val_labels).item()
                 print(f"Epoch: {epoch}.. "
-                    f"Train loss: {running_loss / (steps * inputs.size[0]):.3f}.. "
-                    f"Train accuracy: {running_corrects / (steps * inputs.size[0]):.3f}.. "
+                    f"Train loss: {running_loss / (steps * inputs.shape[0]):.3f}.. "
+                    f"Train accuracy: {running_corrects / (steps * inputs.shape[0]):.3f}.. "
                     f"Validation loss: {val_loss / len(val_loader):.3f}.. "
                     f"Validation accuracy: {running_val_corrects / len(val_loader):.3f}")
 
