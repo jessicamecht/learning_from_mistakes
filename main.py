@@ -29,7 +29,7 @@ def main():
 
     in_size = train_data[0][0].shape[1]
     path = os.path.join('augments', 'W1')
-    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
     genotype = gt.from_str(genotype)
     model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
     model.load_state_dict(torch.load(path + '/best.pth.tar'))
