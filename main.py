@@ -49,7 +49,7 @@ def main():
     print("Start Architecture Search")
     path = os.path.join('searchs')
     #model = search.main(train_queue, val_queue, path)
-    best_model = torch.load(path + '/best.pth.tar').module
+    #best_model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
