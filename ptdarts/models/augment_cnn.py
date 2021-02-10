@@ -32,7 +32,7 @@ class AuxiliaryHead(nn.Module):
 
 class AugmentCNN(nn.Module):
     """ Augmented CNN model """
-    def __init__(self, input_size, C_in, C, n_classes, n_layers, auxiliary, genotype,
+    def __INIT__(self, input_size, C_in, C, n_classes, n_layers, auxiliary, genotype,
                  stem_multiplier=3):
         """
         Args:
