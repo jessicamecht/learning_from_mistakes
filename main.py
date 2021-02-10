@@ -42,13 +42,13 @@ def main():
     # set of weights given the DARTS architecture by minimizing weighted training loss
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
-    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
+    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
     model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
     path = os.path.join('searchs')
-    model = search.main(train_queue, val_queue, path)
+    #model = search.main(train_queue, val_queue, path)
     best_model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
