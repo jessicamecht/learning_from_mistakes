@@ -46,7 +46,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
                         loss = calculate_weighted_loss(logits, labels, criterion, weights)
                         val_loss += loss.item()
                         _, preds = torch.max(logits, 1)
-                        print(preds.shape)
+                        print(len(val_loader), steps)
                         running_val_corrects += torch.sum(preds == labels)
                 print(f"Epoch: {epoch}.. "
                     f"Train loss: {running_loss / steps:.3f}.. "
