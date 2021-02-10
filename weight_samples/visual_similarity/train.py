@@ -21,7 +21,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
 
     for epoch in range(epochs):
         running_loss = 0.0
-        running_corrects = 0
+        running_corrects = 0.0
         for steps, (inputs, labels, weights) in enumerate(train_loader):
             model.train()
             inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
@@ -30,7 +30,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             loss = calculate_weighted_loss(logits, labels, criterion, weights)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item() * inputs.size(0)
+            running_loss += loss.item()
 
             _, preds = torch.max(logits, 1)
             running_corrects += torch.sum(preds == labels)
@@ -38,8 +38,8 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             if steps % 10 == 0 and steps != 0:
                 model.eval()
                 with torch.no_grad():
-                    val_loss = 0
-                    running_val_corrects = 0
+                    val_loss = 0.0
+                    running_val_corrects = 0.0
                     for inputs, labels, weights in val_loader:
                         inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
                         logits = model.forward(inputs)
@@ -48,6 +48,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
 
                         _, preds = torch.max(logits, 1)
                         running_val_corrects += torch.sum(preds == labels)
+                        print(running_val_corrects, running_corrects)
                 print(f"Epoch: {epoch}.. "
                     f"Train loss: {running_loss / steps:.3f}.. "
                     f"Train accuracy: {running_corrects / steps:.3f}.. "
