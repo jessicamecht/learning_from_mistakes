@@ -33,24 +33,23 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             running_loss += loss.item()
 
             _, preds = torch.max(logits, 1)
-            running_corrects += torch.sum(preds == labels)
+            running_corrects += torch.sum(preds == labels).item()
 
             if steps % 10 == 0 and steps != 0:
                 model.eval()
                 with torch.no_grad():
                     val_loss = 0.0
                     running_val_corrects = 0.0
-                    for inputs, labels, weights in val_loader:
-                        inputs, labels, weights = inputs.to(device), labels.to(device), weights.to(device)
-                        logits = model.forward(inputs)
-                        loss = calculate_weighted_loss(logits, labels, criterion, weights)
+                    for val_inputs, val_labels, val_weights in val_loader:
+                        val_inputs, val_labels, val_weights = val_inputs.to(device), val_labels.to(device), val_weights.to(device)
+                        logits = model.forward(val_inputs)
+                        loss = calculate_weighted_loss(logits, val_labels, criterion, val_weights)
                         val_loss += loss.item()
                         _, preds = torch.max(logits, 1)
-                        print(len(val_loader), steps)
-                        running_val_corrects += torch.sum(preds == labels)
+                        running_val_corrects += torch.sum(preds == val_labels).item()
                 print(f"Epoch: {epoch}.. "
-                    f"Train loss: {running_loss / steps:.3f}.. "
-                    f"Train accuracy: {running_corrects / steps:.3f}.. "
+                    f"Train loss: {running_loss / (steps * inputs.size[0]):.3f}.. "
+                    f"Train accuracy: {running_corrects / (steps * inputs.size[0]):.3f}.. "
                     f"Validation loss: {val_loss / len(val_loader):.3f}.. "
                     f"Validation accuracy: {running_val_corrects / len(val_loader):.3f}")
 

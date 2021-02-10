@@ -14,7 +14,7 @@ def main():
     create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=50)
+    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=100)
     # First Stage: calculate network weights W1 with fixed architecture A by minimizing training loss,
     # then apply to validation set and see how it performs
     print("Start Stage 1")
@@ -30,7 +30,7 @@ def main():
     device_ids =  list(range(torch.cuda.device_count()))
     path = os.path.join('augments', 'W1')
     #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
-    model = torch.load(path + '/best.pth.tar').module
+    #model = torch.load(path + '/best.pth.tar').module
 
     # Use validation performance to re-weight each training example with three scores
     # for each training sample and update them in instance_weights.npy
@@ -43,7 +43,7 @@ def main():
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
     #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
-    model = torch.load(path + '/best.pth.tar').module
+    #model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
