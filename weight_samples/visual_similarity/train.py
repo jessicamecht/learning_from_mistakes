@@ -38,7 +38,7 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
             equals = top_class == labels.view(*top_class.shape)
             running_accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
 
-            if steps % 10 == 0:
+            if steps % 10 == 0 and steps != 0:
                 model.eval()
                 with torch.no_grad():
                     val_loss = 0
