@@ -14,7 +14,7 @@ def main():
     create_clean_initial_weights('./data/', 'cifar-10-batches-py')
 
     train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=100)
+    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=10)
     # First Stage: calculate network weights W1 with fixed architecture A by minimizing training loss,
     # then apply to validation set and see how it performs
     print("Start Stage 1")
