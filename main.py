@@ -36,7 +36,7 @@ def main():
     # for each training sample and update them in instance_weights.npy
     print("Update Similarity weights")
     w_config = load_config('weight_samples/config.yml')
-    update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
+    #update_similarity_weights.calculate_similarity_weights(train_data, train_queue, model, val_queue, w_config)
 
     # Second Stage: based on the calculated weights for each training instance, calculates a second
     # set of weights given the DARTS architecture by minimizing weighted training loss
