@@ -41,6 +41,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
     criterion = criterion.to(device)
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers, use_aux, genotype)
+    print('config.gpus', config.gpus)
     model = nn.DataParallel(model, device_ids=config.gpus).to(device)
 
     # model size

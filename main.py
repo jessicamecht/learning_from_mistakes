@@ -6,9 +6,11 @@ from ptdarts import augment, search
 from weight_samples import update_similarity_weights
 from ptdarts.models.augment_cnn import AugmentCNN
 import os
+import torch.nn as nn
 import torch
 import ptdarts.genotypes as gt
 
+device = torch.device("cuda")
 
 def main():
     # load data
@@ -28,10 +30,12 @@ def main():
                    "reduce_concat=range(2, 6))"
 
     in_size = train_data[0][0].shape[1]
+    device_ids =  list(range(torch.cuda.device_count()))
     path = os.path.join('augments', 'W1')
     _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
     genotype = gt.from_str(genotype)
     model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
+    model = nn.DataParallel(model, device_ids=device_ids).to(device)
     model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
     # Use validation performance to re-weight each training example with three scores
@@ -46,6 +50,7 @@ def main():
     path = os.path.join('augments', 'W2')
     _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
     model = AugmentCNN(in_size, 3, 36, 10, 20, True, genotype)
+    model = nn.DataParallel(model, device_ids=config.gpus).to(device)
     model.load_state_dict(torch.load(path + '/best.pth.tar'))
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
