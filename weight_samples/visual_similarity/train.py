@@ -22,7 +22,7 @@ def train(train_loader, val_loader, writer, learning_rate, epochs, config_path):
     criterion = criterion.to(device)
     optimizer = optim.Adam(model.fc.parameters(), lr=learning_rate)
 
-
+    best_top1 = 0.
     for epoch in range(epochs):
         top1 = utils.AverageMeter()
         top5 = utils.AverageMeter()
