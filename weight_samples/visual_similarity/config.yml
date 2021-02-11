@@ -1,2 +1,2 @@
-epochs:  100
+epochs:  1
 learning_rate: 0.003
