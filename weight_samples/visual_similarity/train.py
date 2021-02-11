@@ -50,8 +50,8 @@ def train(train_loader, val_loader, learning_rate=0.001, epochs=100):
                 print(f"Epoch: {epoch}.. "
                     f"Train loss: {running_loss / (steps * inputs.shape[0]):.3f}.. "
                     f"Train accuracy: {running_corrects / (steps * inputs.shape[0]):.3f}.. "
-                    f"Validation loss: {val_loss / len(val_loader):.3f}.. "
-                    f"Validation accuracy: {running_val_corrects / len(val_loader):.3f}")
+                    f"Validation loss: {val_loss / (len(val_loader)* val_inputs.shape[0]):.3f}.. "
+                    f"Validation accuracy: {running_val_corrects / (len(val_loader)* val_inputs.shape[0]):.3f}")
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     torch.save(model.state_dict(), script_dir + '/state_dicts/weighted_resnet_model.pt')
