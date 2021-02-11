@@ -73,7 +73,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
             is_best = False
         state = {'epoch': epoch + 1, 'state_dict': model.state_dict(),
                  'optimizer': optimizer.state_dict()}
-        utils.save_checkpoint(state, config_path + 'resume_checkpoints')
+        utils.save_checkpoint(state, config_path + '/resume_checkpoints')
         utils.save_checkpoint(model, config_path, is_best)
 
 

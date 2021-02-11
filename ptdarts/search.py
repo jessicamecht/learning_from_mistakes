@@ -91,7 +91,7 @@ def main(train_loader, valid_loader, config_path, writer):
             is_best = False
         state = {'epoch': epoch + 1, 'state_dict': model.state_dict(),
                  'w_optim': w_optim.state_dict(), "alpha_optim": alpha_optim.state_dict()}
-        utils.save_checkpoint(state, config_path + 'resume_checkpoints')
+        utils.save_checkpoint(state, config_path + '/resume_checkpoints')
         utils.save_checkpoint(model, config_path, is_best)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))

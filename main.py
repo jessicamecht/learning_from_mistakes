@@ -65,10 +65,8 @@ def main():
     # Given the learned Architecture and image embedding, do a linear regression to obtain the coefficient vector r
     print("Update Coefficient Vector")
     coeff_config = load_config('./coefficient_update/config.yml')
-    model = resnet_model.resnet50(pretrained=False)
-    best_model_wts = torch.load('./weight_samples/visual_similarity/state_dicts/weighted_resnet_model.pt')
-    model.load_state_dict(best_model_wts)
-    train_coefficient_update.train(train_queue, val_queue, model, coeff_config['learning_rate'], coeff_config['epochs'],writer=writer)
+    path = os.path.join('coefficient_update')
+    train_coefficient_update.train(train_queue, val_queue, best_model, coeff_config['learning_rate'], coeff_config['epochs'], writer, path)
 
     #Stage 4, use the updated architecture, embedding, r and check validation loss
 

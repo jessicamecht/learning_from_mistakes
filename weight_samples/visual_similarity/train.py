@@ -62,7 +62,7 @@ def train(train_loader, val_loader, writer, learning_rate, epochs, config_path):
             is_best = False
         state = {'epoch': epoch + 1, 'state_dict': model.state_dict(),
                      'optimizer': optimizer.state_dict()}
-        utils.save_checkpoint(state, config_path + 'resume_checkpoints')
+        utils.save_checkpoint(state, config_path + '/resume_checkpoints')
         utils.save_checkpoint(model, config_path, is_best)
 
     script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
