@@ -76,7 +76,7 @@ def validate(model, criterion, val_loader, writer, cur_step, epoch, epochs, logg
 
     model.eval()
     with torch.no_grad():
-        for step, val_inputs, val_labels, val_weights in enumerate(val_loader):
+        for step, (val_inputs, val_labels, val_weights) in enumerate(val_loader):
             N = val_inputs.size(0)
             val_inputs, val_labels, val_weights = val_inputs.to(device), val_labels.to(device), val_weights.to(device)
             logits = model.forward(val_inputs)
