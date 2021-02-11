@@ -4,6 +4,8 @@ from coefficient_update import train as train_coefficient_update
 from utils import load_config
 from ptdarts import augment, search
 from weight_samples import update_similarity_weights
+import weight_samples.visual_similarity.resnet_model as resnet_model
+from tensorboardX import SummaryWriter
 import os
 import torch
 
@@ -12,6 +14,8 @@ device = torch.device("cuda")
 def main():
     # load data
     create_clean_initial_weights('./data/', 'cifar-10-batches-py')
+
+    writer = SummaryWriter(log_dir="tensorboard")
 
     train_data, val_data, test_data = loadCIFARData()
     train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=100)
@@ -29,7 +33,7 @@ def main():
     in_size = train_data[0][0].shape[1]
     device_ids =  list(range(torch.cuda.device_count()))
     path = os.path.join('augments', 'W1')
-    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path)
+    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path, writer=writer)
     #model = torch.load(path + '/best.pth.tar').module
 
     # Use validation performance to re-weight each training example with three scores
@@ -42,25 +46,29 @@ def main():
     # set of weights given the DARTS architecture by minimizing weighted training loss
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
-    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path)
+    #_ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path, writer=writer)
     #model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
     print("Start Architecture Search")
     path = os.path.join('searchs')
-    #model = search.main(train_queue, val_queue, path)
+    #model = search.main(train_queue, val_queue, path, writer=writer)
     #best_model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.2: update image embedding V by minimizing the validation loss
     print("Update Embedding")
     vis_config = load_config('weight_samples/visual_similarity/config.yml')
-    train_visual_embedding.train(train_queue, val_queue, vis_config['learning_rate'], vis_config['epochs'])
+    path = os.path.join('visual_embedding')
+    train_visual_embedding.train(train_queue, val_queue, writer, vis_config['learning_rate'], vis_config['epochs'], path)
 
     # Third Stage.3: update coefficient vector r by minimizing the validation loss
     # Given the learned Architecture and image embedding, do a linear regression to obtain the coefficient vector r
     print("Update Coefficient Vector")
     coeff_config = load_config('./coefficient_update/config.yml')
-    train_coefficient_update.train(train_queue, val_queue, model, coeff_config['learning_rate'], coeff_config['epochs'])
+    model = resnet_model.resnet50(pretrained=False)
+    best_model_wts = torch.load('./weight_samples/visual_similarity/state_dicts/weighted_resnet_model.pt')
+    model.load_state_dict(best_model_wts)
+    train_coefficient_update.train(train_queue, val_queue, model, coeff_config['learning_rate'], coeff_config['epochs'],writer=writer)
 
     #Stage 4, use the updated architecture, embedding, r and check validation loss
 

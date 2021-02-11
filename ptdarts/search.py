@@ -3,7 +3,6 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-from tensorboardX import SummaryWriter
 from ptdarts.config import SearchConfig
 import ptdarts.utils as utils
 from ptdarts.models.search_cnn import SearchCNNController
@@ -16,8 +15,7 @@ config = SearchConfig()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def main(train_loader, valid_loader, config_path):
-    writer = SummaryWriter(log_dir=os.path.join(config_path, "tb"))
+def main(train_loader, valid_loader, config_path, writer):
     writer.add_text('config', config.as_markdown(), 0)
 
     logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name)))
@@ -63,11 +61,11 @@ def main(train_loader, valid_loader, config_path):
         model.print_alphas(logger)
 
         # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, epoch, cur_step)
+        top1 = validate(valid_loader, model, epoch, cur_step, writer, logger)
 
         # log
         # genotype
@@ -98,16 +96,17 @@ def main(train_loader, valid_loader, config_path):
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
+    writer.add_graph(model.encoder, next(iter(valid_loader)))
     return model
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
     cur_step = epoch*len(train_loader)
-    writer.add_scalar('train/lr', lr, cur_step)
+    writer.add_scalar('train_search/lr', lr, cur_step)
 
     model.train()
 
@@ -145,9 +144,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
                     top1=top1, top5=top5))
 
-        writer.add_scalar('train/loss', loss.item(), cur_step)
-        writer.add_scalar('train/top1', prec1.item(), cur_step)
-        writer.add_scalar('train/top5', prec5.item(), cur_step)
+        writer.add_scalar('train_search/loss', loss.item(), cur_step)
+        writer.add_scalar('train_search/top1', prec1.item(), cur_step)
+        writer.add_scalar('train_search/top5', prec5.item(), cur_step)
         cur_step += 1
         gc.collect()
         torch.cuda.empty_cache()
@@ -155,7 +154,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, epoch, cur_step):
+def validate(valid_loader, model, epoch, cur_step, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -186,9 +185,9 @@ def validate(valid_loader, model, epoch, cur_step):
             gc.collect()
             torch.cuda.empty_cache()
 
-    writer.add_scalar('val/loss', losses.avg, cur_step)
-    writer.add_scalar('val/top1', top1.avg, cur_step)
-    writer.add_scalar('val/top5', top5.avg, cur_step)
+    writer.add_scalar('val_search/loss', losses.avg, cur_step)
+    writer.add_scalar('val_search/top1', top1.avg, cur_step)
+    writer.add_scalar('val_search/top5', top5.avg, cur_step)
 
 
     return top1.avg
