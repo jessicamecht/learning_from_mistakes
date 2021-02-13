@@ -34,9 +34,8 @@ def main():
                    "reduce_concat=range(2, 6))"
 
     in_size = train_data[0][0].shape[1]
-    device_ids =  list(range(torch.cuda.device_count()))
     path = os.path.join('augments', 'W1')
-    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path, writer=writer)
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=False,config_path=path, writer=writer, label='W1')
     model = torch.load(path + '/best.pth.tar').module
 
     # Use validation performance to re-weight each training example with three scores
@@ -49,7 +48,7 @@ def main():
     # set of weights given the DARTS architecture by minimizing weighted training loss
     print("Start Stage 2")
     path = os.path.join('augments', 'W2')
-    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path, writer=writer)
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path, writer=writer, label='W2')
     model = torch.load(path + '/best.pth.tar').module
 
     # Third Stage.1: based on the new set of weights, update the architecture A by minimizing the validation loss
@@ -72,11 +71,12 @@ def main():
     train_coefficient_update.train(train_queue, val_queue, best_model, coeff_config['learning_rate'], coeff_config['epochs'], writer, path)
 
     #Stage 4, use the updated architecture, embedding, r and check validation loss
-    path = os.path.dirname(os.path.abspath(__file__))
-    logger = utils.get_logger(os.path.join(path, "final_validation.log"))
-    criterion = nn.CrossEntropyLoss(reduction='none')
-    top1_avg = augment.validate(val_queue, best_model, criterion, 0, 0, True, logger, writer, label='val_augment_final')
-    print(f'Final Prediction Accuracy: {top1_avg}')
+    print("Start Stage 4")
+    path = os.path.join('augments', 'Final')
+    genotype_path = os.path.join('searchs', 'genotype.txt')
+    with open(genotype_path, 'r') as file:
+        genotype = file.read().replace('\n', '')
+    _ = augment.main(in_size, train_queue, val_queue, genotype, weight_samples=True, config_path=path, writer=writer, label='W_final')
 
 if __name__ == "__main__":
     main()

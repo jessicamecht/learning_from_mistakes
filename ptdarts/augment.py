@@ -12,11 +12,11 @@ config = AugmentConfig()
 
 device = torch.device("cuda")
 
-def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_path, writer):
+def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_path, writer, label='W'):
     # tensorboard
     writer.add_text('config', config.as_markdown(), 0)
 
-    logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name)))
+    logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name + label)))
     config.print_params(logger.info)
     genotype = gt.from_str(genotype)
     logger.info("Logger is set - training start")
@@ -63,7 +63,7 @@ def main(in_size, train_loader, valid_loader, genotype, weight_samples, config_p
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer)
+        top1 = validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer, label)
 
         # save
         if best_top1 < top1:
@@ -119,21 +119,20 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples, logg
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
                     top1=top1, top5=top5))
 
-        writer.add_scalar('train_augment/loss', loss.item(), cur_step)
-        writer.add_scalar('train_augment/top1', prec1.item(), cur_step)
-        writer.add_scalar('train_augment/top5', prec5.item(), cur_step)
+        writer.add_scalar(f'train_augment_{label}/loss', loss.item(), cur_step)
+        writer.add_scalar(f'train_augment_{label}/top1', prec1.item(), cur_step)
+        writer.add_scalar(f'train_augment_{label}/top5', prec5.item(), cur_step)
         cur_step += 1
 
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer, label='val_augment'):
+def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer, label):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
     model.eval()
-
     with torch.no_grad():
         for step, (X, y, w) in enumerate(valid_loader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
@@ -147,17 +146,16 @@ def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, lo
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)
 
-            if step % config.print_freq == 0 or step == len(valid_loader)-1:
+            if step % 10 == 0 or step == len(valid_loader)-1:
                 logger.info(
                     "Valid: [{:3d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
 
-    writer.add_scalar(f'{label}/loss', losses.avg, cur_step)
-    writer.add_scalar(f'{label}/top1', top1.avg, cur_step)
-    writer.add_scalar(f'{label}/top5', top5.avg, cur_step)
-
+    writer.add_scalar(f'val_augment_{label}/loss', losses.avg, cur_step)
+    writer.add_scalar(f'val_augment_{label}/top1', top1.avg, cur_step)
+    writer.add_scalar(f'val_augment_{label}/top5', top5.avg, cur_step)
     logger.info("Valid: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
     return top1.avg

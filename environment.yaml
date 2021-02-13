@@ -14,6 +14,7 @@ dependencies:
     - pyyaml
     - tensorboardX
     - Pillow==6.2.2
+    - tensorflow==2.4.1
   - numpy==1.19.2
   - torchvision
   - tensorboard==1.13.0
@@ -21,7 +22,6 @@ dependencies:
   - cudatoolkit
   - pytorch==1.5.0
   - python==3.7.4
-  - tensorflow==2.4.1
   - pydicom
   - tqdm
   - pandas
