@@ -127,7 +127,7 @@ def train(train_loader, model, optimizer, criterion, epoch, weight_samples, logg
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer):
+def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, logger, writer, label='val_augment'):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -154,9 +154,9 @@ def validate(valid_loader, model, criterion, epoch, cur_step, weight_samples, lo
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
 
-    writer.add_scalar('val_augment/loss', losses.avg, cur_step)
-    writer.add_scalar('val_augment/top1', top1.avg, cur_step)
-    writer.add_scalar('val_augment/top5', top5.avg, cur_step)
+    writer.add_scalar(f'{label}/loss', losses.avg, cur_step)
+    writer.add_scalar(f'{label}/top1', top1.avg, cur_step)
+    writer.add_scalar(f'{label}/top5', top5.avg, cur_step)
 
     logger.info("Valid: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
