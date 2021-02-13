@@ -66,7 +66,7 @@ def main():
     print("Update Coefficient Vector")
     coeff_config = load_config('./coefficient_update/config.yml')
     path = os.path.join('coefficient_update')
-    train_coefficient_update.train(train_queue, val_queue, best_model, coeff_config['learning_rate'], coeff_config['epochs'], writer, path)
+    #train_coefficient_update.train(train_queue, val_queue, best_model, coeff_config['learning_rate'], coeff_config['epochs'], writer, path)
 
     #Stage 4, use the updated architecture, embedding, r and check validation loss
 

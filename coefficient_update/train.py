@@ -20,7 +20,7 @@ def train(train_queue, val_queue, pred_model, learning_rate, epochs, writer,conf
     '''Linear regression neural network which searches for the perfect coefficient vector for the training sample similiarities
     :param train_queue training data loader
     :param val_queue validation data loader '''
-    logger = utils.get_logger(os.path.join(config_path, "{}.log".format('visual_embedding')))
+    logger = utils.get_logger(os.path.join(config_path, "{}.log".format('coefficient_update')))
 
     inputDim = next(iter(val_queue))[0].shape[0]
     outputDim = 1
