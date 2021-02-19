@@ -64,7 +64,7 @@ def main(train_loader, valid_loader, config_path, writer):
     architect_w2 = Architect(model_w2, config.w_momentum, config.w_weight_decay)
 
     #Init Visual encoder model
-    visual_encoder_model = Resnet_Encoder()
+    visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_optimizer = torch.optim.Adam(visual_encoder_model.parameters(), config.alpha_lr, betas=(0.5, 0.999),
                                    weight_decay=config.alpha_weight_decay)
 
