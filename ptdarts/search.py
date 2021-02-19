@@ -69,7 +69,8 @@ def main(train_loader, valid_loader, config_path, writer):
                                    weight_decay=config.alpha_weight_decay)
 
     #Init coefficient vector r update model
-    coefficient_update_model = LinearRegression()
+    inputDim = next(iter(valid_loader))[0].shape[0]
+    coefficient_update_model = LinearRegression(inputDim, 1, nn.Criterion())
     coefficient_update_optimizer = torch.optim.Adam(coefficient_update_model.parameters(), config.alpha_lr, betas=(0.5, 0.999),
                                                 weight_decay=config.alpha_weight_decay)
 
