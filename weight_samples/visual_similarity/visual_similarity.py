@@ -9,7 +9,7 @@ from weight_samples.visual_similarity import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def visual_validation_similarity(validation_examples, training_examples, init=False):
+def visual_validation_similarity(model, validation_examples, training_examples, init=False):
     '''function to calculate the image similarities of training and validation examples by decoding the images
     into an embedding space
     :param validation_examples torch of size (number of val images, channels, height, width)
@@ -17,7 +17,6 @@ def visual_validation_similarity(validation_examples, training_examples, init=Fa
     :param init: Boolean to indicate which feature extractor to use
     :returns visual_similarity torch of size (number train examples, number val examples)'''
 
-    model = create_visual_feature_extractor_model(init)
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
@@ -43,10 +42,11 @@ def extract_resnet_features(images, model):
         features = features_var.data # get the tensor out of the variable
     return torch.squeeze(features)
 
+'''
 def create_visual_feature_extractor_model(init=False):
-  '''instantiates the pretrained resnet model
-   :param init Boolean chooses pretrained resnet 50 or the updated weighted resnet model
-   :returns instantiated torch nn model '''
+  #instantiates the pretrained resnet model
+   #:param init Boolean chooses pretrained resnet 50 or the updated weighted resnet model
+   #:returns instantiated torch nn model 
 
   name = 'weighted_resnet_model' if not init else 'resnet50'
   resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
@@ -56,3 +56,4 @@ def create_visual_feature_extractor_model(init=False):
   for p in resnet_50_model.parameters():
     p.requires_grad = False
   return resnet_50_model
+'''
