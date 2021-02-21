@@ -40,6 +40,7 @@ class Architect():
         label_similarity = measure_label_similarity(val_y, trn_y)
         print(vis_similarity.shape)
         print(label_similarity.shape)
+        print(u_j.shape)
         print(r.shape)
 
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
