@@ -46,14 +46,9 @@ def main(train_loader, valid_loader, config_path, writer):
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
 
-    model_w2 = copy.deepcopy(model)
-    model_w2 = model_w2.to(device)
-
 
     # weights optimizer
     w_optim = torch.optim.SGD(model.weights(), config.w_lr, momentum=config.w_momentum,
-                              weight_decay=config.w_weight_decay)
-    w2_optim = torch.optim.SGD(model_w2.weights(), config.w_lr, momentum=config.w_momentum,
                               weight_decay=config.w_weight_decay)
     # alphas optimizer
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999),
@@ -75,7 +70,7 @@ def main(train_loader, valid_loader, config_path, writer):
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
-    architect = Architect(model_w2, visual_encoder_model, coefficient_update_model, config.w_momentum, config.w_weight_decay)
+    architect = Architect(model, visual_encoder_model, coefficient_update_model, config.w_momentum, config.w_weight_decay)
 
 
     # training loop
@@ -87,11 +82,11 @@ def main(train_loader, valid_loader, config_path, writer):
         model.print_alphas(logger)
 
         # training
-        train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_optim, alpha_optim, visual_encoder_model, coefficient_update_model, visual_encoder_optimizer, coefficient_update_optimizer, lr, epoch, writer, logger)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_model, coefficient_update_model, visual_encoder_optimizer, coefficient_update_optimizer, lr, epoch, writer, logger)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model_w2, epoch, cur_step, writer, logger)
+        top1 = validate(valid_loader, model, epoch, cur_step, writer, logger)
 
         # log
         # genotype
@@ -126,10 +121,13 @@ def main(train_loader, valid_loader, config_path, writer):
     return model
 
 
-def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_optim, alpha_optim, v_model, c_model, v_optim, c_optim, lr, epoch, writer, logger):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, v_model, c_model, v_optim, c_optim, lr, epoch, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
+    naive_top1 = utils.AverageMeter()
+    naive_top5 = utils.AverageMeter()
+    naive_losses = utils.AverageMeter()
 
     cur_step = epoch*len(train_loader)
     writer.add_scalar('train_search/lr', lr, cur_step)
@@ -146,7 +144,7 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         alpha_optim.zero_grad()
         v_optim.zero_grad()
         c_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w2_optim)#calculates gradient for alphas, visual encoder and coefficient model
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)#calculates gradient for alphas, visual encoder and coefficient model
         alpha_optim.step()
         v_optim.step()
         c_optim.step()
@@ -156,8 +154,8 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()
         logits = model(trn_X)
-        loss = model.criterion(logits, trn_y)
-        loss.backward()
+        loss_naive = model.criterion(logits, trn_y)
+        loss_naive.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
@@ -173,12 +171,12 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
         #2. weighted training loss -> W2 network weights for neural architecture search
-        w2_optim.zero_grad()
-        logits = model_w2(trn_X)
+        w_optim.zero_grad()
+        logits = model(trn_X)
         loss = calculate_weighted_loss(logits, trn_y, nn.CrossEntropyLoss(reduction='none'), a_i)
         loss.backward()
-        nn.utils.clip_grad_norm_(model_w2.weights(), config.w_grad_clip)
-        w2_optim.step()
+        nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
+        w_optim.step()
         prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
 
 
@@ -188,17 +186,29 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
 
+        naive_losses.update(loss_naive.item(), N)
+        naive_top1.update(prec1_naive.item(), N)
+        naive_top5.update(prec5_naive.item(), N)
+
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
                 "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
                     top1=top1, top5=top5))
-            #TODO add info on naive performance
+            logger.info(
+                "Train naive : [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
+                "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
+                    epoch + 1, config.epochs, step, len(train_loader) - 1, losses=naive_losses,
+                    top1=naive_top1, top5=naive_top5))
 
         writer.add_scalar('train_search/loss', loss.item(), cur_step)
         writer.add_scalar('train_search/top1', prec1.item(), cur_step)
         writer.add_scalar('train_search/top5', prec5.item(), cur_step)
+
+        writer.add_scalar('train_search_naive/loss', loss_naive.item(), cur_step)
+        writer.add_scalar('train_search_naive/top1', prec1_naive.item(), cur_step)
+        writer.add_scalar('train_search_naive/top5', prec5_naive.item(), cur_step)
         cur_step += 1
         gc.collect()
         torch.cuda.empty_cache()
@@ -210,6 +220,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
+
 
     model.eval()
 
@@ -240,7 +251,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
     writer.add_scalar('val_search/top1', top1.avg, cur_step)
     writer.add_scalar('val_search/top5', top5.avg, cur_step)
 
-
+7
     return top1.avg
 
 
