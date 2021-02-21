@@ -25,7 +25,7 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     #dot product of each training with each validation sample V(d_tr)*V(d_val)
     matmul = torch.mm(validation_embedding, training_embedding.T)
     print(matmul, matmul.shape, 'matmul')
-    norm = transforms.Normalize((0, 0), (1, 1))
+    norm = transforms.Normalize(0, 1)
     normed_matmul = norm(matmul)
     x_ij_num = torch.exp(matmul) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
