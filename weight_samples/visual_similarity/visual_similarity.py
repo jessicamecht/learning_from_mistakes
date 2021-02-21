@@ -27,7 +27,7 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     print(matmul, matmul.shape, 'matmul')
     normed_matmul = (matmul - torch.min(matmul))/(torch.max(matmul) - torch.min(matmul))
     print(normed_matmul, normed_matmul.shape)
-    x_ij_num = torch.exp(matmul) # (number val examples,number train examples)
+    x_ij_num = torch.exp(normed_matmul) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
     x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
     assert(x_ij_denom.shape[0] == training_embedding.shape[0])
