@@ -39,7 +39,11 @@ class Architect():
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
-        print(u_j.shape, vis_similarity.shape, label_similarity.shape, r.shape)
+        print(vis_similarity.shape)
+        print(label_similarity.shape)
+        print(r.shape)
+        print(u_j.shape)
+
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
