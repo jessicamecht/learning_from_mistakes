@@ -21,19 +21,14 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
-    print(validation_embedding, training_embedding, 'validation_embedding')
     #dot product of each training with each validation sample V(d_tr)*V(d_val)
     matmul = torch.mm(validation_embedding, training_embedding.T)
-    print(matmul, matmul.shape, 'matmul')
     normed_matmul = (matmul - torch.min(matmul))/(torch.max(matmul) - torch.min(matmul))
-    print(normed_matmul, normed_matmul.shape)
     x_ij_num = torch.exp(normed_matmul) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
     x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
     assert(x_ij_denom.shape[0] == training_embedding.shape[0])
-    print(x_ij_num, x_ij_denom, 'x_ij_denomß')
     visual_similarity = x_ij_num/x_ij_denom
-    print(visual_similarity, 'visual_similarity')
     assert (visual_similarity.shape[0] == validation_embedding.shape[0] and visual_similarity.shape[1] == training_embedding.shape[0])
     return visual_similarity.T
 
