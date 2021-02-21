@@ -32,7 +32,8 @@ class Architect():
         #calc weights
         val_logits = self.net(val_X)
 
-        r = torch.Tensor(list(self.coefficient_model.parameters()))
+        r = list(self.coefficient_model.parameters())
+        print(r)
         crit = nn.CrossEntropyLoss()
         u_j = crit(val_logits, val_y)
         # using W1 to calculate uj
