@@ -32,7 +32,8 @@ class Architect():
         #calc weights
         val_logits = self.net(val_X)
         r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
-        u_j = torch.mean(self.net.criterion(val_logits, val_y))
+        crit = nn.CrossEntropyLoss()
+        u_j = crit(val_logits, val_y)
         # using W1 to calculate uj
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
