@@ -32,7 +32,7 @@ class Architect():
         #calc weights
         val_logits = self.net(val_X)
         r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
-        crit = nn.CrossEntropyLoss()
+        crit = nn.CrossEntropyLoss(reduction='none')
         u_j = crit(val_logits, val_y)
         # using W1 to calculate uj
         # 1. calculate weights
@@ -42,7 +42,7 @@ class Architect():
         print(label_similarity.shape)
         print(r.shape)
 
-        a_i = sample_weights(u_j.item(), vis_similarity, label_similarity, r)
+        a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
