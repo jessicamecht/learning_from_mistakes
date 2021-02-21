@@ -64,6 +64,7 @@ class SearchCNN(nn.Module):
         self.linear = nn.Linear(C_p, n_classes)
 
     def forward(self, x, weights_normal, weights_reduce):
+        print('herererer')
         s0 = s1 = self.stem(x)
 
         for cell in self.cells:
