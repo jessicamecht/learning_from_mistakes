@@ -20,7 +20,7 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
-
+    print(validation_embedding, training_embedding, 'validation_embedding')
     #dot product of each training with each validation sample V(d_tr)*V(d_val)
     x_ij_num = torch.exp(torch.mm(validation_embedding, training_embedding.T)) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
