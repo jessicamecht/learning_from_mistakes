@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import os, sys
+from torchvision import transforms
 torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,6 +25,8 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     #dot product of each training with each validation sample V(d_tr)*V(d_val)
     matmul = torch.mm(validation_embedding, training_embedding.T)
     print(matmul, matmul.shape, 'matmul')
+    norm = transforms.Normalize((0, 0), (1, 1))
+    normed_matmul = norm(matmul)
     x_ij_num = torch.exp(matmul) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
     x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
