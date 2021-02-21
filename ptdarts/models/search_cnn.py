@@ -106,6 +106,7 @@ class SearchCNNController(nn.Module):
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x):
+        #relax the categorical choice of a particular operation to a softmax over all possible operations?
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
         weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
@@ -125,9 +126,9 @@ class SearchCNNController(nn.Module):
                                              devices=self.device_ids)
         return nn.parallel.gather(outputs, self.device_ids[0])
 
-    def loss(self, X, y):
+    def loss(self, X, y, weights):
         logits = self.forward(X)
-        return self.criterion(logits, y)
+        return self.criterion(logits, y, weights)
 
     def print_alphas(self, logger):
         # remove formats

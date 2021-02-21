@@ -40,7 +40,8 @@ def main(train_loader, valid_loader, config_path, writer):
     input_channels = 3
     n_classes = 10
 
-    net_crit = nn.CrossEntropyLoss().to(device)
+    net_crit = nn.CrossEntropyLoss(reduction='none').to(device)
+    net_crit = lambda logits, target, weights: calculate_weighted_loss(logits, target, net_crit, weights).to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
@@ -58,23 +59,23 @@ def main(train_loader, valid_loader, config_path, writer):
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999),
                                    weight_decay=config.alpha_weight_decay)
 
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        w_optim, config.epochs, eta_min=config.w_lr_min)
-    architect = Architect(model, config.w_momentum, config.w_weight_decay)
-    architect_w2 = Architect(model_w2, config.w_momentum, config.w_weight_decay)
-
-    #Init Visual encoder model
+    # Init Visual encoder model
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
     visual_encoder_optimizer = torch.optim.Adam(visual_encoder_model.parameters(), config.alpha_lr, betas=(0.5, 0.999),
-                                   weight_decay=config.alpha_weight_decay)
+                                                weight_decay=config.alpha_weight_decay)
 
-    #Init coefficient vector r update model
+    # Init coefficient vector r update model
     inputDim = next(iter(valid_loader))[0].shape[0]
     coefficient_update_model = LinearRegression(inputDim, 1, nn.CrossEntropyLoss())
     coefficient_update_model = coefficient_update_model.to(device)
-    coefficient_update_optimizer = torch.optim.Adam(coefficient_update_model.parameters(), config.alpha_lr, betas=(0.5, 0.999),
-                                                weight_decay=config.alpha_weight_decay)
+    coefficient_update_optimizer = torch.optim.Adam(coefficient_update_model.parameters(), config.alpha_lr,
+                                                    betas=(0.5, 0.999),
+                                                    weight_decay=config.alpha_weight_decay)
+
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        w_optim, config.epochs, eta_min=config.w_lr_min)
+    architect = Architect(model_w2, visual_encoder_model, coefficient_update_model, config.w_momentum, config.w_weight_decay)
 
 
     # training loop
@@ -141,23 +142,13 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)
+        #get the weights for the current
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w2_optim)
-        alpha_optim.step()
-
-        # V step, minimizes validation loss TODO think about approximating?
         v_optim.zero_grad()
-        v_logits = v_model(val_X)
-        v_loss = v_model.criterion(v_logits, val_y)
-        v_loss.backward()
-        v_optim.step()
-
-
-        # r step, minimizes validation loss
         c_optim.zero_grad()
-        c_logits = c_model(val_X)
-        c_loss = c_model.criterion(c_logits, val_y)
-        c_loss.backward()
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w2_optim)#calculates gradient for alphas, visual encoder and coefficient model
+        alpha_optim.step()
+        v_optim.step()
         c_optim.step()
 
         r = c_model.parameters()
@@ -170,7 +161,7 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        prec1_naive, prec5_naive = utils.accuracy(logits, trn_y, topk=(1, 5))
 
         #Validation network W2 apply W1∗(A) to the validation dataset D(val) and see how it performs on the validation examples
         val_logits = model(val_X)
@@ -203,6 +194,7 @@ def train(train_loader, valid_loader, model, model_w2, architect, w_optim, w2_op
                 "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                     epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
                     top1=top1, top5=top5))
+            #TODO add info on naive performance
 
         writer.add_scalar('train_search/loss', loss.item(), cur_step)
         writer.add_scalar('train_search/top1', prec1.item(), cur_step)
