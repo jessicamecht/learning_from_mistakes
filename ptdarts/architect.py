@@ -4,6 +4,7 @@ import torch
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
 from weight_samples.label_similarity.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
+import torch.nn as nn 
 
 class Architect():
     """ Compute gradients of alphas """
@@ -31,7 +32,7 @@ class Architect():
         #calc weights
         val_logits = self.net(val_X)
         r = self.coefficient_model.parameters()
-        u_j = self.net.criterion(val_logits, val_y)
+        u_j = nn.CrossEntropyLoss(val_logits, val_y)
         # using W1 to calculate uj
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
