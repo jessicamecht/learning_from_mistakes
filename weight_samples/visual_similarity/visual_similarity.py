@@ -39,7 +39,9 @@ def extract_resnet_features(images, model):
     model.eval()
     with torch.no_grad():
         features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
+        print(features_var, 'features')
         features = features_var.data # get the tensor out of the variable
+        print(features, 'featuresfeatures')
     return torch.squeeze(features)
 
 '''
