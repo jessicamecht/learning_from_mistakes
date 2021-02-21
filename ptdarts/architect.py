@@ -31,7 +31,8 @@ class Architect():
         # do virtual step (calc w`)
         #calc weights
         val_logits = self.net(val_X)
-        print(val_logits.shape)
+        print(val_logits.shape, val_y.shape)
+
         r = self.coefficient_model.parameters()
         u_j = nn.CrossEntropyLoss(val_logits, val_y)
         # using W1 to calculate uj
