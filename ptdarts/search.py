@@ -41,7 +41,7 @@ def main(train_loader, valid_loader, config_path, writer):
     n_classes = 10
 
     net_crit = nn.CrossEntropyLoss(reduction='none').to(device)
-    net_crit = lambda logits, target, weights: calculate_weighted_loss(logits, target, net_crit, weights).to(device)
+    net_crit = lambda logits, target, weights: calculate_weighted_loss(logits, target, weights, net_crit).to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
@@ -173,7 +173,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, v_
         #2. weighted training loss -> W2 network weights for neural architecture search
         w_optim.zero_grad()
         logits = model(trn_X)
-        loss = calculate_weighted_loss(logits, trn_y, nn.CrossEntropyLoss(reduction='none'), a_i)
+        loss = calculate_weighted_loss(logits, trn_y, a_i, nn.CrossEntropyLoss(reduction='none'))
         loss.backward()
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
