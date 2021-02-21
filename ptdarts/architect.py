@@ -32,7 +32,7 @@ class Architect():
         #calc weights
         val_logits = self.net(val_X)
 
-        r = list(self.coefficient_model.parameters())
+        r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())
         print(r)
         crit = nn.CrossEntropyLoss()
         u_j = crit(val_logits, val_y)
