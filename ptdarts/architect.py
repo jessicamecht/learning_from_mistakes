@@ -30,7 +30,7 @@ class Architect():
         """
         # do virtual step (calc w`)
         #calc weights
-        val_logits = self.net(val_X)
+        val_logits = self.net.net(val_X)
         print(val_logits.shape, val_logits[0], val_y.shape)
 
         r = self.coefficient_model.parameters()
