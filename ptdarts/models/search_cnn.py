@@ -64,7 +64,6 @@ class SearchCNN(nn.Module):
         self.linear = nn.Linear(C_p, n_classes)
 
     def forward(self, x, weights_normal, weights_reduce):
-        print('herererer')
         s0 = s1 = self.stem(x)
 
         for cell in self.cells:
@@ -107,14 +106,11 @@ class SearchCNNController(nn.Module):
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x):
-        print('forw')
         #relax the categorical choice of a particular operation to a softmax over all possible operations?
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
         weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
         if len(self.device_ids) == 1:
-            print('forwssssss')
-
             return self.net(x, weights_normal, weights_reduce)
 
         # scatter x
