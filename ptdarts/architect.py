@@ -30,7 +30,7 @@ class Architect():
         """
         # do virtual step (calc w`)
         #calc weights
-        val_logits = self.net(trn_X)
+        val_logits = self.net(val_X)
         r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
         crit = nn.CrossEntropyLoss(reduction='none')
         u_j = crit(val_logits, val_y)
