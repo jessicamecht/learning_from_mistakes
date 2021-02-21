@@ -26,7 +26,9 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
     x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
     assert(x_ij_denom.shape[0] == training_embedding.shape[0])
+    print(x_ij_num, x_ij_denom, 'x_ij_denomß')
     visual_similarity = x_ij_num/x_ij_denom
+    print(visual_similarity, 'visual_similarity')
     assert (visual_similarity.shape[0] == validation_embedding.shape[0] and visual_similarity.shape[1] == training_embedding.shape[0])
     return visual_similarity.T
 
@@ -39,9 +41,7 @@ def extract_resnet_features(images, model):
     model.eval()
     with torch.no_grad():
         features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
-        print(features_var, 'features')
         features = features_var.data # get the tensor out of the variable
-        print(features, 'featuresfeatures')
     return torch.squeeze(features)
 
 '''
