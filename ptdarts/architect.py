@@ -30,7 +30,7 @@ class Architect():
         # do virtual step (calc w`)
         #calc weights
         val_logits = self.net(val_X)
-        r = self.coefficient_model.weights()
+        r = self.coefficient_model.parameters()
         u_j = self.net.criterion(val_logits, val_y)
         # using W1 to calculate uj
         # 1. calculate weights
@@ -46,8 +46,8 @@ class Architect():
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        r_weights = tuple(self.coefficient_model.weights())
-        visual_encoder_weights = tuple(self.visual_encoder_model.weights())
+        r_weights = tuple(self.coefficient_model.parameters())
+        visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
         v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
@@ -61,9 +61,9 @@ class Architect():
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
-            for v, dv, h in zip(self.visual_encoder_model.weights(), d_vis_enc, hessian):
+            for v, dv, h in zip(self.visual_encoder_model.parameters(), d_vis_enc, hessian):
                 v.grad = dv - xi*h
-            for c, dr, h in zip(self.coefficient_model.weights(), d_r, hessian):
+            for c, dr, h in zip(self.coefficient_model.parameters(), d_r, hessian):
                 c.grad = dr - xi*h
 
 
