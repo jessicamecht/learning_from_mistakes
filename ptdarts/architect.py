@@ -30,11 +30,12 @@ class Architect():
         """
         # do virtual step (calc w`)
         #calc weights
-        val_logits = self.net.net(val_X)
+        val_logits = self.net(val_X)
         print(val_logits.shape, val_logits[0], val_y.shape)
 
         r = self.coefficient_model.parameters()
-        u_j = nn.CrossEntropyLoss(val_logits, val_y)
+        crit = nn.CrossEntropyLoss()
+        u_j = crit(val_logits, val_y)
         # using W1 to calculate uj
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
