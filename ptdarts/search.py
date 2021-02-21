@@ -251,7 +251,6 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
     writer.add_scalar('val_search/top1', top1.avg, cur_step)
     writer.add_scalar('val_search/top5', top5.avg, cur_step)
 
-7
     return top1.avg
 
 
