@@ -148,7 +148,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, v_
         v_optim.step()
         c_optim.step()
 
-        r = c_model.parameters()
+        r = nn.utils.parameters_to_vector(c_model.parameters())[:-1]
 
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()
