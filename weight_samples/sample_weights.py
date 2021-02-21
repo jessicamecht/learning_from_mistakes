@@ -11,7 +11,6 @@ def calculate_similarities(predictive_performance, visual_similarity_scores, lab
     :return torch of size (number train examples, number val examples)'''
     predictive_performance = predictive_performance.reshape(1, predictive_performance.shape[0])
     repeated_pred_perf = predictive_performance.repeat_interleave(visual_similarity_scores.shape[0], dim=0)
-    print(visual_similarity_scores.shape, label_similarity_scores.shape, repeated_pred_perf.shape)
     assert(visual_similarity_scores.shape == label_similarity_scores.shape == repeated_pred_perf.shape)
 
     return visual_similarity_scores * label_similarity_scores * repeated_pred_perf
@@ -24,7 +23,6 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     :param r coefficient torch tensor of size (number val examples, 1)
     :returns tensor of size (number train examples, 1)'''
     similiarities = calculate_similarities(predictive_performance, visual_similarity_scores, label_similarity_scores)
-    print(similiarities.shape, r.shape)
     r = r.reshape(r.shape[0], 1)
     dp = torch.mm(similiarities, r)
     a = torch.sigmoid(dp)
