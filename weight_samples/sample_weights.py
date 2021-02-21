@@ -9,7 +9,7 @@ def calculate_similarities(predictive_performance, visual_similarity_scores, lab
     :param visual_similarity_scores torch of size (number train examples, number val examples)
     :param label_similarity_scores torch of size (number train examples, number val examples)
     :return torch of size (number train examples, number val examples)'''
-    predictive_performance = predictive_performance.T#.reshape(predictive_performance.shape[0], 1).T
+    predictive_performance = predictive_performance.reshape(1, predictive_performance.shape[0])
     repeated_pred_perf = predictive_performance.repeat_interleave(visual_similarity_scores.shape[0], dim=0)
     print(visual_similarity_scores.shape, label_similarity_scores.shape, repeated_pred_perf.shape)
     assert(visual_similarity_scores.shape == label_similarity_scores.shape == repeated_pred_perf.shape)
