@@ -50,7 +50,6 @@ class Architect():
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
         r_weights = tuple(self.coefficient_model.parameters())
-        print(r_weights.requires_grad, v_weights.requires_grad, v_alphas.requires_grad)
         visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
         print('a_i.requires_grad', a_i.requires_grad)
         print('a_i.rsljkhkjhkequires_grad',torch.autograd.grad(loss, visual_encoder_weights + r_weights))
