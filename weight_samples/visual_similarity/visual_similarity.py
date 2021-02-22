@@ -20,21 +20,16 @@ def visual_validation_similarity(model, validation_examples, training_examples, 
 
     #create the features
     validation_embedding = extract_resnet_features(validation_examples, model) # (number val examples,number features)
-    print('vis', validation_embedding.requires_grad)
     training_embedding = extract_resnet_features(training_examples, model) # (number train examples,number features)
-    print('tra', training_embedding.requires_grad)
     #dot product of each training with each validation sample V(d_tr)*V(d_val)
     matmul = torch.mm(validation_embedding, training_embedding.T)
     normed_matmul = (matmul - torch.min(matmul))/(torch.max(matmul) - torch.min(matmul))
-    print('normed_matmul', normed_matmul.requires_grad)
     x_ij_num = torch.exp(normed_matmul) # (number val examples,number train examples)
     assert(x_ij_num.shape[0] == validation_embedding.shape[0] and x_ij_num.shape[1] == training_embedding.shape[0])
     x_ij_denom = torch.sum(x_ij_num, 0) # (number of train examples)
-    print('x_ij_denom', x_ij_denom.requires_grad)
     assert(x_ij_denom.shape[0] == training_embedding.shape[0])
     visual_similarity = x_ij_num/x_ij_denom
     assert (visual_similarity.shape[0] == validation_embedding.shape[0] and visual_similarity.shape[1] == training_embedding.shape[0])
-    print('visual_similarity', visual_similarity.requires_grad)
     return visual_similarity.T
 
 def extract_resnet_features(images, model):
@@ -44,8 +39,6 @@ def extract_resnet_features(images, model):
     :returns torch of size (number images, number features)'''
     img_var = images
     features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
-    features = features_var.data # get the tensor out of the variable
-    print('torch', torch.squeeze(features).shape, features_var.shape)
     return torch.squeeze(features_var)
 
 '''
