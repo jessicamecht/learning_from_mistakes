@@ -59,7 +59,7 @@ class Architect():
         d_r = v_grads[len(visual_encoder_weights):]  # vis encoder weights
 
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -71,7 +71,7 @@ class Architect():
                 c.grad = dr - xi*h
 
 
-    def compute_hessian(self, dw, trn_X, trn_y):
+    def compute_hessian(self, dw, trn_X, trn_y, weights):
         """
         dw = dw` { L_val(w`, alpha) }
         w+ = w + eps * dw
@@ -86,14 +86,14 @@ class Architect():
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p += eps * d
-        loss = self.net.loss(trn_X, trn_y)
+        loss = self.net.loss(trn_X, trn_y, weights)
         dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
 
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p -= 2. * eps * d
-        loss = self.net.loss(trn_X, trn_y)
+        loss = self.net.loss(trn_X, trn_y, weights)
         dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
 
         # recover w
