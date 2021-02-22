@@ -53,6 +53,7 @@ class Architect():
         print(r_weights.requires_grad, v_weights.requires_grad, v_alphas.requires_grad)
         visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
         print('a_i.requires_grad', a_i.requires_grad)
+        print('a_i.rsljkhkjhkequires_grad',torch.autograd.grad(loss, visual_encoder_weights + r_weights))
         v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
