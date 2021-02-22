@@ -40,7 +40,7 @@ class Architect():
         label_similarity = measure_label_similarity(val_y, trn_y)
 
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
-        print(a_i.requires_grad)
+        print(vis_similarity.requires_grad, a_i.requires_grad, label_similarity.requires_grad, r.requires_grad)
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
         # calc unrolled loss
