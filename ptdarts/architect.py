@@ -38,7 +38,9 @@ class Architect():
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
+
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
+        print(a_i.requires_grad)
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
         # calc unrolled loss
@@ -49,7 +51,7 @@ class Architect():
         v_weights = tuple(self.v_net.weights())
         r_weights = tuple(self.coefficient_model.parameters())
         visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights )
+        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
         d_vis_enc = v_grads[len(visual_encoder_weights):len(r_weights)]  # vis encoder weights
