@@ -46,7 +46,7 @@ def extract_resnet_features(images, model):
     features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
     features = features_var.data # get the tensor out of the variable
     print('torch', torch.squeeze(features).shape, features_var.shape, features_var)
-    return features_var
+    return torch.squeeze(features_var)
 
 '''
 def create_visual_feature_extractor_model(init=False):
