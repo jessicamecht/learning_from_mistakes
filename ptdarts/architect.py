@@ -122,10 +122,10 @@ class Architect():
         # forward & calc loss
         #calc weights using encoder etc and calc loss on training
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
+        print(loss)
 
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
-        self.getBack(loss.grad_fn)
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():
@@ -139,15 +139,3 @@ class Architect():
             for a, va in zip(self.net.alphas(), self.v_net.alphas()):
                 va.copy_(a)
 
-    def getBack(self, var_grad_fn):
-        print(var_grad_fn)
-        for n in var_grad_fn.next_functions:
-            if n[0]:
-                try:
-                    tensor = getattr(n[0], 'variable')
-                    print(n[0])
-                    print('Tensor with grad found:', tensor)
-                    print(' - gradient:', tensor.grad)
-                    print()
-                except AttributeError as e:
-                    getBack(n[0])
