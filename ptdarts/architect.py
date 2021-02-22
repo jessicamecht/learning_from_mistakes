@@ -52,7 +52,6 @@ class Architect():
         r_weights = tuple(self.coefficient_model.parameters())
         visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
         print('a_i.requires_grad', a_i.requires_grad)
-        print('a_i.rsljkhkjhkequires_grad',torch.autograd.grad(loss, visual_encoder_weights + r_weights))
         v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
@@ -122,7 +121,6 @@ class Architect():
         # forward & calc loss
         #calc weights using encoder etc and calc loss on training
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
-        print(loss)
 
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
