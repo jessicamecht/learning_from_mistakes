@@ -71,7 +71,7 @@ class Architect():
 
 
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y, v_ai)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -130,7 +130,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights())
+        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph= True)
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():
