@@ -32,18 +32,18 @@ class Architect():
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
-        # do virtual step (calc w`)
         #calc weights
+        # using W1 to calculate uj
         val_logits = self.net(val_X)
         r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
         crit = nn.CrossEntropyLoss(reduction='none')
         u_j = crit(val_logits, val_y)
-        # using W1 to calculate uj
         # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
+        # do virtual step (calc w`)
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
         val_logits = self.v_net(val_X)
@@ -113,6 +113,7 @@ class Architect():
 
     def virtual_step(self, trn_X, trn_y, xi, w_optim, weights):
         """
+        updates the weights W_2' by minimizing the weighted training loss
         Compute unrolled weight w' (virtual step)
 
         Step process:
@@ -133,14 +134,13 @@ class Architect():
         gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
-        with torch.no_grad():
-            # dict key is not the value, but the pointer. So original network weight have to
-            # be iterated also.
-            for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
-                m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
-                vw.copy_(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
+        # dict key is not the value, but the pointer. So original network weight have to
+        # be iterated also.
+        for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
+            m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
+            vw.copy_(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
 
-            # synchronize alphas
-            for a, va in zip(self.net.alphas(), self.v_net.alphas()):
-                va.copy_(a)
+        # synchronize alphas
+        for a, va in zip(self.net.alphas(), self.v_net.alphas()):
+            va.copy_(a)
 
