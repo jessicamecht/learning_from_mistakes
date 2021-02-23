@@ -84,7 +84,10 @@ class Architect():
 
         norm = torch.cat([w.view(-1) for w in dw]).norm()
         eps = 0.01 / norm
-
+        print(self.net.weights(), 'wq')
+        with torch.no_grad():
+            self.net.weights().copy_(self.net.weights() + eps * dw)
+        print(self.net.weights(), 'wqsdsfd')
         # w+ = w + eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
