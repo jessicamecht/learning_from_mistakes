@@ -76,12 +76,8 @@ class Architect():
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
-            for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
+            for alpha, da, h in zip(self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters(), dalpha, hessian):
                 alpha.grad = da - xi*h
-            for v, dv, h in zip(self.visual_encoder_model.parameters(), d_vis_enc, hessian):
-                v.grad = dv - xi*h
-            for c, dr, h in zip(self.coefficient_model.parameters(), d_r, hessian):
-                c.grad = dr - xi*h
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
@@ -99,15 +95,15 @@ class Architect():
         # w+ = w + eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
-                p += p + eps * d
+                p += eps * d
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
+        dalpha_pos = torch.autograd.grad(loss, self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters()) # dalpha { L_trn(w+) }
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p -= 2. * eps * d
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
+        dalpha_neg = torch.autograd.grad(loss, self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters()) # dalpha { L_trn(w-) }
 
         # recover w
         with torch.no_grad():
