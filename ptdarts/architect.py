@@ -64,15 +64,13 @@ class Architect():
         v_weights = tuple(self.v_net.weights())
         r_weights = tuple(self.v_coefficient_model.parameters())
         visual_encoder_weights = tuple(self.v_visual_encoder_model.parameters())
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
-        dalpha = v_grads[:len(v_alphas)]#alpha weights
-        dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
-        d_vis_enc = v_grads[len(visual_encoder_weights):len(r_weights)]  # vis encoder weights
-        d_r = v_grads[len(visual_encoder_weights):]  # vis encoder weights
+        v_grads = torch.autograd.grad(loss, v_alphas  + visual_encoder_weights + r_weights + v_weights)
+        dalpha = v_grads[:len(v_alphas + visual_encoder_weights + r_weights)]#alpha weights
+        dw = v_grads[len(v_alphas + visual_encoder_weights + r_weights):]#network weights
 
 
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, v_ai)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -88,7 +86,6 @@ class Architect():
         hessian = (dalpha { L_trn(w+, alpha) } - dalpha { L_trn(w-, alpha) }) / (2*eps)
         eps = 0.01 / ||dw||
         """
-
 
         norm = torch.cat([w.view(-1) for w in dw]).norm()
         eps = 0.01 / norm
