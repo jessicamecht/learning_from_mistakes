@@ -46,6 +46,16 @@ class Architect():
 
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
+        val_logits = self.net(val_X)
+        r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
+        crit = nn.CrossEntropyLoss(reduction='none')
+        u_j = crit(val_logits, val_y)
+        # using W1 to calculate uj
+        # 1. calculate weights
+        vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
+        label_similarity = measure_label_similarity(val_y, trn_y)
+        a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
+
         # calc unrolled loss
         loss = self.v_net.loss(val_X, val_y, a_i) # L_val(w`) #call weighted loss
 
@@ -129,7 +139,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
+        gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():
