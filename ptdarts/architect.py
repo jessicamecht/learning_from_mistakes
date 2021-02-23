@@ -29,6 +29,8 @@ class Architect():
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
+        trn_X_clone = trn_X.clone()
+        trn_y_clone = trn_Y.clone()
         torch.autograd.set_detect_anomaly(True)
         # do virtual step (calc w`)
         #calc weights
@@ -61,7 +63,8 @@ class Architect():
         d_r = v_grads[len(visual_encoder_weights):]  # vis encoder weights
 
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
+
+        hessian = self.compute_hessian(dw, trn_X_clone, trn_y_clone, weights)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -129,7 +132,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
+        gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():
