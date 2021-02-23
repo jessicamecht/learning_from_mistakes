@@ -30,7 +30,7 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         trn_X_clone = trn_X.clone()
-        trn_y_clone = trn_Y.clone()
+        trn_y_clone = trn_y.clone()
         torch.autograd.set_detect_anomaly(True)
         # do virtual step (calc w`)
         #calc weights
