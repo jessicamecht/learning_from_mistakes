@@ -23,11 +23,13 @@ class Architect():
 
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
+
         """ Compute unrolled loss and backward its gradients
         Args:
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
+        torch.autograd.set_detect_anomaly(True)
         # do virtual step (calc w`)
         #calc weights
         val_logits = self.net(val_X)
@@ -124,7 +126,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights())
+        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():

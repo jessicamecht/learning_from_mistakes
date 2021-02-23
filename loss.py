@@ -11,7 +11,6 @@ def calculate_weighted_loss(logits, target, weights):
     :param criterion torch nn loss function
     :param weights torch tensor of size (number of examples,)
     :returns tuple of averaged loss and class probabilities as torch tensors of size (number of examples,)'''
-    print('loss')
     criterion = nn.CrossEntropyLoss(reduction='none').to(device)
     loss = criterion(logits, target)
     weighted_loss_individual = loss.float() * weights.float()
