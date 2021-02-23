@@ -17,6 +17,8 @@ class Architect():
         self.net = net # SearchCNNController has alpha parameters and search cnn model
         self.visual_encoder_model = visual_encoder_model
         self.coefficient_model = coefficient_model
+        self.v_visual_encoder_model = copy.deepcopy(visual_encoder_model)
+        self.v_coefficient_model = copy.deepcopy(coefficient_model)
         self.v_net = copy.deepcopy(net)
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
@@ -50,9 +52,9 @@ class Architect():
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        r_weights = tuple(self.coefficient_model.parameters())
-        visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights, retain_graph = True)
+        r_weights = tuple(self.v_coefficient_model.parameters())
+        visual_encoder_weights = tuple(self.v_visual_encoder_model.parameters())
+        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
         d_vis_enc = v_grads[len(visual_encoder_weights):len(r_weights)]  # vis encoder weights
@@ -84,16 +86,13 @@ class Architect():
 
         norm = torch.cat([w.view(-1) for w in dw]).norm()
         eps = 0.01 / norm
-        print(self.net.weights(), 'wq')
-        with torch.no_grad():
-            self.net.weights().copy_(self.net.weights() + eps * dw)
-        print(self.net.weights(), 'wqsdsfd')
         # w+ = w + eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p += p + eps * d
+                p._version = 1
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_pos = torch.autograd.grad(loss, self.net.alphas(), retain_graph=True) # dalpha { L_trn(w+) }
+        dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
