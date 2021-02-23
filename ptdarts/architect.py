@@ -88,6 +88,7 @@ class Architect():
         # w+ = w + eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
+                print(p._version, 'p_version1')
                 p += eps * d
                 print(p._version, 'p_version')
         loss = self.net.loss(trn_X, trn_y, weights)
