@@ -1,4 +1,5 @@
 """ Architect controls architecture of cell by computing gradients of alphas """
+from itertools import chain
 import copy
 import torch
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
@@ -94,7 +95,7 @@ class Architect():
             for p, d in zip(self.net.weights(), dw):
                 p += eps * d
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_pos = torch.autograd.grad(loss, self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters()) # dalpha { L_trn(w+) }
+        dalpha_pos = torch.autograd.grad(loss, chain(self.net.alphas(), self.coefficient_model.parameters(), self.visual_encoder_model.parameters())) # dalpha { L_trn(w+) }
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
