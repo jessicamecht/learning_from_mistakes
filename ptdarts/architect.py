@@ -41,17 +41,14 @@ class Architect():
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
-        print(vis_similarity.requires_grad, a_i.requires_grad, label_similarity.requires_grad, r.requires_grad)
-
 
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
+        #calc weights once again
         val_logits = self.net(val_X)
         r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
         crit = nn.CrossEntropyLoss(reduction='none')
         u_j = crit(val_logits, val_y)
-        # using W1 to calculate uj
-        # 1. calculate weights
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
@@ -65,7 +62,7 @@ class Architect():
         r_weights = tuple(self.coefficient_model.parameters())
         visual_encoder_weights = tuple(self.visual_encoder_model.parameters())
         print('a_i.requires_grad', a_i.requires_grad)
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights, retain_graph=True)
+        v_grads = torch.autograd.grad(loss, v_alphas + v_weights + visual_encoder_weights + r_weights)
         dalpha = v_grads[:len(v_alphas)]#alpha weights
         dw = v_grads[len(v_alphas):len(visual_encoder_weights)]#network weights
         d_vis_enc = v_grads[len(visual_encoder_weights):len(r_weights)]  # vis encoder weights
