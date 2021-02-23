@@ -44,7 +44,7 @@ class Architect():
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
-        self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
+        self.virtual_step(trn_X, trn_y, xi, w_optim, a_i.data)
 
         val_logits = self.v_net(val_X)
         r = nn.utils.parameters_to_vector(self.v_coefficient_model.parameters())[:-1]
@@ -130,7 +130,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph= True)
+        gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         with torch.no_grad():
