@@ -29,8 +29,6 @@ class Architect():
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
-        trn_X_clone = trn_X.clone()
-        trn_y_clone = trn_y.clone()
         torch.autograd.set_detect_anomaly(True)
         # do virtual step (calc w`)
         #calc weights
@@ -43,13 +41,11 @@ class Architect():
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
-        new_a_i = a_i.clone()
-        weights = a_i.clone()
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
 
         # calc unrolled loss
-        loss = self.v_net.loss(val_X, val_y, new_a_i) # L_val(w`) #call weighted loss
+        loss = self.v_net.loss(val_X, val_y, a_i) # L_val(w`) #call weighted loss
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
@@ -64,7 +60,7 @@ class Architect():
 
 
 
-        hessian = self.compute_hessian(dw, trn_X_clone, trn_y_clone, weights)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -91,24 +87,15 @@ class Architect():
 
         # w+ = w + eps*dw`
         with torch.no_grad():
-            i = 0
             for p, d in zip(self.net.weights(), dw):
-                print(p._version, 'p_version1')
-                if i == 0 : print(p)
                 p = p + eps * d
-                if i == 0 :print(p)
-                i = 1
         loss = self.net.loss(trn_X, trn_y, weights)
         dalpha_pos = torch.autograd.grad(loss, self.net.alphas(), retain_graph=True) # dalpha { L_trn(w+) }
         print(loss._version, '_version')
         # w- = w - eps*dw`
         with torch.no_grad():
-            i = 0
             for p, d in zip(self.net.weights(), dw):
-                if i == 0 :print(p, 'p_versionsdsdsfsf')
                 p -= 2. * eps * d
-                if i == 0 :print(p)
-                i = 1
         loss = self.net.loss(trn_X, trn_y, weights)
         dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
 
