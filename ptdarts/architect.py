@@ -44,7 +44,7 @@ class Architect():
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
-        self.virtual_step(trn_X, trn_y, xi, w_optim, a_i.data)
+        self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
         val_logits = self.v_net(val_X)
         r = nn.utils.parameters_to_vector(self.v_coefficient_model.parameters())[:-1]
@@ -58,7 +58,8 @@ class Architect():
 
 
         # calc unrolled loss
-        loss = self.v_net.loss(val_X, val_y, v_ai) # L_val(w`) #call weighted loss
+        crit = nn.CrossEntropyLoss()
+        loss = crit(val_X, val_y) # L_val(w`)
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
@@ -66,10 +67,8 @@ class Architect():
         r_weights = tuple(self.v_coefficient_model.parameters())
         visual_encoder_weights = tuple(self.v_visual_encoder_model.parameters())
         v_grads = torch.autograd.grad(loss, v_alphas  + visual_encoder_weights + r_weights + v_weights)
-        dalpha = v_grads[:len(v_alphas + visual_encoder_weights + r_weights)]#alpha weights
-        dw = v_grads[len(v_alphas + visual_encoder_weights + r_weights):]#network weights
-
-
+        dalpha = v_grads[:len(v_alphas + visual_encoder_weights + r_weights)]#alpha gradients
+        dw = v_grads[len(v_alphas + visual_encoder_weights + r_weights):]#network gradients
 
         hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
 
