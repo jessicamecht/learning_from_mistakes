@@ -59,7 +59,8 @@ class Architect():
 
         # calc unrolled loss
         crit = nn.CrossEntropyLoss()
-        loss = crit(val_X, val_y) # L_val(w`)
+        logits = self.v_net(val_X)
+        loss = crit(logits, val_y) # L_val(w`)
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
