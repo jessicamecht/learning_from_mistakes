@@ -41,20 +41,13 @@ class Architect():
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
-
+        new_a_i = a_i.clone()
+        weights = a_i.clone()
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
 
-        #calc weights once again
-        val_logits = self.net(val_X)
-        r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
-        crit = nn.CrossEntropyLoss(reduction='none')
-        u_j = crit(val_logits, val_y)
-        vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
-        label_similarity = measure_label_similarity(val_y, trn_y)
-        a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
 
         # calc unrolled loss
-        loss = self.v_net.loss(val_X, val_y, a_i) # L_val(w`) #call weighted loss
+        loss = self.v_net.loss(val_X, val_y, new_a_i) # L_val(w`) #call weighted loss
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
@@ -69,7 +62,7 @@ class Architect():
         d_r = v_grads[len(visual_encoder_weights):]  # vis encoder weights
 
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
@@ -89,6 +82,8 @@ class Architect():
         hessian = (dalpha { L_trn(w+, alpha) } - dalpha { L_trn(w-, alpha) }) / (2*eps)
         eps = 0.01 / ||dw||
         """
+
+
         norm = torch.cat([w.view(-1) for w in dw]).norm()
         eps = 0.01 / norm
 
@@ -99,7 +94,6 @@ class Architect():
                 p += eps * d
                 print(p._version, 'p_version')
         loss = self.net.loss(trn_X, trn_y, weights)
-
         dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
         print(loss._version, '_version')
         # w- = w - eps*dw`
