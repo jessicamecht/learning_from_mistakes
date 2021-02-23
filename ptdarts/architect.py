@@ -43,11 +43,22 @@ class Architect():
         vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
         label_similarity = measure_label_similarity(val_y, trn_y)
         a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
+
         self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
+
+        val_logits = self.v_net(val_X)
+        r = nn.utils.parameters_to_vector(self.v_coefficient_model.parameters())[:-1]
+        crit = nn.CrossEntropyLoss(reduction='none')
+        u_j = crit(val_logits, val_y)
+        # using W1 to calculate uj
+        # 1. calculate weights
+        vis_similarity = visual_validation_similarity(self.v_visual_encoder_model, val_X, trn_X)
+        label_similarity = measure_label_similarity(val_y, trn_y)
+        v_ai = sample_weights(u_j, vis_similarity, label_similarity, r)
 
 
         # calc unrolled loss
-        loss = self.v_net.loss(val_X, val_y, a_i) # L_val(w`) #call weighted loss
+        loss = self.v_net.loss(val_X, val_y, v_ai) # L_val(w`) #call weighted loss
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
