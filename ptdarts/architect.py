@@ -31,7 +31,6 @@ class Architect():
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
-        torch.autograd.set_detect_anomaly(True)
         # do virtual step (calc w`)
         #calc weights
         val_logits = self.net(val_X)
