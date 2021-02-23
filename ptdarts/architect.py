@@ -98,7 +98,7 @@ class Architect():
                 print(p)
                 print(p.shape, p._version, 'p_version')
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
+        dalpha_pos = torch.autograd.grad(loss, self.net.alphas(), retain_graph=True) # dalpha { L_trn(w+) }
         print(loss._version, '_version')
         # w- = w - eps*dw`
         with torch.no_grad():
