@@ -146,7 +146,7 @@ class Architect():
 
                 print('l', vw, new_weights.shape)
             else:
-                print(vw.shape)
+                print(vw, vw.shape)
                 torch.cat((new_weights, vw))
         print(self.v_net.weights())
         self.v_net.weights().data = new_weights
