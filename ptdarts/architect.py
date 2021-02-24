@@ -146,5 +146,5 @@ class Architect():
                 print(vw)
         # synchronize alphas
         for a, va in zip(self.net.alphas(), self.v_net.alphas()):
-            va.copy_(a)
+            va.data = torch.clone(a)
 
