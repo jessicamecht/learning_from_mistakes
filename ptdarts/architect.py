@@ -144,7 +144,6 @@ class Architect():
             vw.data = torch.clone(w - xi * (m + g + self.w_weight_decay*w))
             if i == 0:
                 print(vw)
-        print(self.v_net.weights().data)
         # synchronize alphas
         for a, va in zip(self.net.alphas(), self.v_net.alphas()):
             va.copy_(a)
