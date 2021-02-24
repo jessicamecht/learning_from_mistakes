@@ -143,7 +143,9 @@ class Architect():
             vw = torch.clone(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
             if new_weights is None:
                 new_weights = vw
+                print(new_weights.shape)
             else:
+                print(vw.shape)
                 torch.cat((new_weights, vw))
         print(self.v_net.weights())
         self.v_net.weights().data = new_weights
