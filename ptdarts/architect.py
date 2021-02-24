@@ -138,6 +138,7 @@ class Architect():
         # be iterated also.
 
         new_weights = None
+        print(self.net.weights().shape)
         for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
             m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
             vw = torch.clone(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
