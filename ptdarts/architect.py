@@ -138,17 +138,17 @@ class Architect():
         # be iterated also.
 
         new_weights = None
+        new_biases = None
         print(len(list(self.net.weights())), 'sh')
         for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
             m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
             vw = torch.clone(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
             if new_weights is None:
                 new_weights = vw
-
-                print('l', vw, new_weights.shape)
+                print('l', new_weights.shape)
             else:
-                print(vw, vw.shape)
-                torch.cat((new_weights, vw))
+                print(vw.shape)
+                #torch.cat((new_weights, vw))
         print(self.v_net.weights())
         self.v_net.weights().data = new_weights
         print(self.v_net.weights())
