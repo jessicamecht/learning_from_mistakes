@@ -140,7 +140,8 @@ class Architect():
         print('lll', self.v_net.weights())
         for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
             m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
-            self.v_net.net.parameters().data[i] = torch.clone(w - xi * (m + g + self.w_weight_decay*w)) #set new  weights in copy network
+            vw.data = torch.clone(w - xi * (m + g + self.w_weight_decay*w))
+            print(vw, 'vw')#set new  weights in copy network
         print(self.v_net.weights())
         # synchronize alphas
         for a, va in zip(self.net.alphas(), self.v_net.alphas()):
