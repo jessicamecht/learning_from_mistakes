@@ -139,9 +139,10 @@ class Architect():
 
         for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
             m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
+            test = torch.clone(w - xi * (m + g + self.w_weight_decay*w))
             if i == 0:
-                print(vw, '1')
-            vw.data = torch.clone(w - xi * (m + g + self.w_weight_decay*w))
+                print(test, '1')
+            vw.data = test
             if i == 0:
                 print(vw)
         # synchronize alphas
