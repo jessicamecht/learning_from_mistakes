@@ -24,7 +24,6 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     :returns tensor of size (number train examples, 1)'''
     similiarities = calculate_similarities(predictive_performance, visual_similarity_scores, label_similarity_scores)
     r = r.reshape(r.shape[0], 1)
-    print(r.shape)
     dp = torch.mm(similiarities, r)
     a = torch.sigmoid(dp)
     assert(a.shape[0]== visual_similarity_scores.shape[0])

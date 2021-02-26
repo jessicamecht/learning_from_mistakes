@@ -127,7 +127,7 @@ class SearchCNNController(nn.Module):
 
     def loss(self, X, y, weights):
         logits = self.forward(X)
-        return self.criterion(logits, y, weights)
+        return self.criterion(logits, y, weights, nn.CrossEntropyLoss(reduction='none'))
 
     def print_alphas(self, logger):
         # remove formats
