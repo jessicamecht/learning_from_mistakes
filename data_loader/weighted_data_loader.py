@@ -45,11 +45,11 @@ def loadCIFARData(root = 'data'):
     train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     return train_data, val_data, test_data
 
-def getWeightedDataLoaders(train_data, val_data, test_data,batch_size = 64):
+def getWeightedDataLoaders(train_data, val_data, test_data,batch_size = 64, worker=4):
     '''creates dataloader for train, test and validation sets including a weight variable'''
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=4, pin_memory=True, drop_last=True)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size, num_workers=4, pin_memory=True, drop_last=True)
-    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=4, pin_memory=True, drop_last=True)
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=worker, pin_memory=True, drop_last=True)
+    val_loader = torch.utils.data.DataLoader(val_data, batch_size, num_workers=worker, pin_memory=True, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=worker, pin_memory=True, drop_last=True)
     return train_loader, val_loader, test_loader
 
 
