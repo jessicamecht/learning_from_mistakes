@@ -51,7 +51,7 @@ class Architect():
         weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
         return weights
 
-    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim, v_r_optim):
+    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
         """ Compute unrolled loss and backward its gradients
         Args:
@@ -65,7 +65,7 @@ class Architect():
         model_backup = self.net.state_dict()
         w_optim_backup = w_optim.state_dict()
 
-        self.meta_learn(self.net, v_r_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+        self.meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
         #return to prev state
         self.net.load_state_dict(model_backup)
         w_optim.load_state_dict(w_optim_backup)

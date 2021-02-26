@@ -69,7 +69,7 @@ def main(train_loader, valid_loader, config_path, writer):
         model.print_alphas(logger)
 
         # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_model, lr, epoch, writer, logger)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
@@ -108,7 +108,7 @@ def main(train_loader, valid_loader, config_path, writer):
     return model
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_coeff_vector_optim, lr, epoch, writer, logger):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -127,7 +127,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, visual_encoder_coeff_vector_optim)#calculates gradient for alphas and updates V and r
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)#calculates gradient for alphas and updates V and r
         alpha_optim.step()
 
         # phase 1. child network step (w) minimizes the training loss
