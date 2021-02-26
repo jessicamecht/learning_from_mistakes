@@ -30,7 +30,7 @@ class Architect():
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             logits = fmodel(input)
             weights = self.calc_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
-            loss = weights * F.cross_entropy(logits, target, reduction='none')
+            loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(loss)
 
             logits = fmodel(input)
