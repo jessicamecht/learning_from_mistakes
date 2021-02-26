@@ -119,8 +119,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
 
     for step, ((trn_X, trn_y, weights_train), (val_X, val_y, weights_valid)) in enumerate(zip(train_loader, valid_loader)):
-        trn_X, trn_y, weights_train = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True), weights_train.to(device, non_blocking=True)
-        val_X, val_y, weights_valid = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True), weights_valid.to(device, non_blocking=True)
+        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
+        val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)
@@ -154,6 +154,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+        del trn_y, trn_X, val_y, val_X, weights_train, weights_valid
         gc.collect()
         torch.cuda.empty_cache()
 
