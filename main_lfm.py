@@ -9,7 +9,7 @@ if __name__ == "__main__":
     writer = SummaryWriter(log_dir="tensorboard")
 
     train_data, val_data, test_data = loadCIFARData()
-    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=64)
+    train_queue, val_queue, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=32)
 
     print("Start Architecture Search")
     path = os.path.join('searchs')
