@@ -169,6 +169,6 @@ class Architect():
         logger.info("#####################")
     def print_visual_weights(self, logger):
         logger.info("####### VISUAL ENCODER WEIGHTS #######")
-        logger.info(self.visual_encoder_model.parameters())
+        logger.info(next(self.visual_encoder_model.parameters()))
         logger.info("#####################")
 
