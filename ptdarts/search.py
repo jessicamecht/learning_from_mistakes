@@ -57,7 +57,7 @@ def main(train_loader, valid_loader, config_path, writer):
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
-    architect = Architect(model, visual_encoder_model, coeff_vector, config.w_momentum, config.w_weight_decay)
+    architect = Architect(model, visual_encoder_model, coeff_vector, config.w_momentum, config.w_weight_decay, logger)
 
 
     # training loop
@@ -67,6 +67,8 @@ def main(train_loader, valid_loader, config_path, writer):
         lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
+        architect.print_coefficients(logger)
+        architect.print_visual_weights(logger)
 
         # training
         train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger)

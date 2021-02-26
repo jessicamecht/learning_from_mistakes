@@ -1,5 +1,4 @@
 """ Architect controls architecture of cell by computing gradients of alphas """
-from itertools import chain
 import copy
 import torch
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
@@ -8,12 +7,11 @@ from weight_samples.sample_weights import sample_weights
 import torch.nn as nn
 import higher
 import torch.nn.functional as F
-from loss import calculate_weighted_loss
 
 
 class Architect():
     """ Compute gradients of alphas """
-    def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay):
+    def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay, logger=None):
         """
         Args:
             net
@@ -25,6 +23,7 @@ class Architect():
         self.v_net = copy.deepcopy(net)
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
+        self.logger=logger
 
     def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
@@ -32,6 +31,7 @@ class Architect():
             weights = self.calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
             loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(loss) #replaces gradients with respect to model weights
+            self.logger.info(f'Weighted training loss to update r and V: {loss}')
 
             logits = fmodel(input)
             val_loss = F.cross_entropy(logits, target)
@@ -41,6 +41,8 @@ class Architect():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
             self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients[0]
+            self.logger.info(f'New Coefficient Vector: {self.coefficient_vector}')
+            self.logger.info(f'New Visual Encoder Model Weights: {self.visual_encoder_model.parameters()}')
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
@@ -60,6 +62,7 @@ class Architect():
         """
         #calc weights
         weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
+        self.logger.info(f'Initial training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup
         model_backup = self.net.state_dict()
@@ -73,6 +76,7 @@ class Architect():
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(w`)
+        self.logger.info(f'Validation Loss to update Alpha: {loss}')
 
         # compute gradients of alpha
         v_alphas = tuple(self.v_net.alphas())
@@ -123,6 +127,7 @@ class Architect():
         hessian = [(p-n) / 2.*eps for p, n in zip(dalpha_pos, dalpha_neg)]
         return hessian
 
+
     def virtual_step(self, trn_X, trn_y, xi, w_optim, weights):
         """
         updates the weights W_2' by minimizing the weighted training loss
@@ -141,7 +146,7 @@ class Architect():
         # forward & calc loss
         #calc weights using encoder etc and calc loss on training
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
-
+        self.logger.info(f'Weighted training loss in Virtual Step: {loss}')
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
@@ -156,4 +161,13 @@ class Architect():
             # synchronize alphas
             for a, va in zip(self.net.alphas(), self.v_net.alphas()):
                 va.copy_(a)
+
+    def print_coefficients(self, logger):
+        logger.info("####### R COEFFICIENTS #######")
+        logger.info(self.coefficient_vector)
+        logger.info("#####################")
+    def print_visual_weights(self, logger):
+        logger.info("####### VISUAL ENCODER WEIGHTS #######")
+        logger.info(self.visual_encoder_model.parameters())
+        logger.info("#####################")
 
