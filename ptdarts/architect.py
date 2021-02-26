@@ -37,7 +37,7 @@ class Architect():
             val_loss = F.cross_entropy(logits, target)
             coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector, retain_graph=True)
             visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
-            #coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(), visual_encoder_gradients.detach()
+            coeff_vector_gradients = coeff_vector_gradients.detach()
             with torch.no_grad():
                 print(self.coefficient_vector.shape, self.w_weight_decay, coeff_vector_gradients.shape)
                 self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
