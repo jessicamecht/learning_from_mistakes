@@ -75,14 +75,16 @@ class Architect():
         # compute gradients of alpha
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        dparams, dw = torch.autograd.grad(loss, [v_alphas, v_weights])
+        v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
+        dalpha = v_grads[:len(v_alphas)]
+        dw = v_grads[len(v_alphas):]
 
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 
         # update final alpha gradient = dalpha - xi*hessian
         with torch.no_grad():
-            for param, dparam, h in zip(self.net.alphas(), dparams, hessian):
-                param.grad = dparam - xi*h
+            for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
+                alpha.grad = da - xi*h
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
