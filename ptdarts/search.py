@@ -51,7 +51,6 @@ def main(train_loader, valid_loader, config_path, writer):
     visual_encoder_model = visual_encoder_model.to(device)
     inputDim = next(iter(valid_loader))[0].shape[0]
     coeff_vector = torch.ones(inputDim, 1, requires_grad=True)
-    visual_encoder_coeff_vector_optimizer = torch.optim.Adam(visual_encoder_model.parameters() + coeff_vector, config.alpha_lr, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
 
     # alphas optimizer
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
@@ -70,7 +69,7 @@ def main(train_loader, valid_loader, config_path, writer):
         model.print_alphas(logger)
 
         # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_coeff_vector_optimizer, visual_encoder_model, lr, epoch, writer, logger)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_model, lr, epoch, writer, logger)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
@@ -128,10 +127,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        visual_encoder_coeff_vector_optim.zero_grad()
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, visual_encoder_coeff_vector_optim)#calculates gradient for alphas and updates V and r
         alpha_optim.step()
-        #visual_encoder_coeff_vector_optim.step()
 
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()

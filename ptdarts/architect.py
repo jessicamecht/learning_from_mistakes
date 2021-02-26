@@ -61,9 +61,14 @@ class Architect():
         #calc weights
         weights = self.calc_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
+        #backup
+        model_backup = self.net.state_dict()
+        w_optim_backup = w_optim.state_dict()
 
         self.meta_learn(self.net, v_r_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
-
+        #return to prev state
+        self.net.load_state_dict(model_backup)
+        w_optim.load_state_dict(w_optim_backup)
         # calc unrolled validation loss
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
