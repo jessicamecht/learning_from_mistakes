@@ -123,8 +123,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         val_X, val_y, weights_valid = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True), weights_valid.to(device, non_blocking=True)
         N = trn_X.size(0)
 
-        #meta learn the r and V weights
-
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)#calculates gradient for alphas and updates V and r
@@ -133,7 +131,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()
         logits = model(trn_X)
-        loss = model.criterion(logits, trn_y)
+        criterion = nn.CrossEntropyLoss()
+        loss = criterion(logits, trn_y)
         loss.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
