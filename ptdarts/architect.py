@@ -36,9 +36,12 @@ class Architect():
             logits = fmodel(input)
             val_loss = F.cross_entropy(logits, target)
             coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector, retain_graph=True)
-            visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters(), retain_graph=True)
+            visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
             #coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(), visual_encoder_gradients.detach()
-        return coeff_vector_gradients, visual_encoder_gradients
+            with torch.no_grad():
+                self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
+                for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
+                    p.copy_(p-self.w_weight_decay*p_new) #TODO momentum and stuff
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
@@ -67,7 +70,7 @@ class Architect():
         #return to prev state
         self.net.load_state_dict(model_backup)
         w_optim.load_state_dict(w_optim_backup)
-        # calc unrolled validation loss
+        # calc unrolled validation loss to update alphas
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(w`)
@@ -79,6 +82,8 @@ class Architect():
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
 
+        weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
+                                             self.visual_encoder_model)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 
         # update final alpha gradient = dalpha - xi*hessian
