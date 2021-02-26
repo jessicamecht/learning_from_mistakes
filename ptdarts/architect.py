@@ -39,12 +39,9 @@ class Architect():
             visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
             #coeff_vector_gradients = coeff_vector_gradients.detach()
             with torch.no_grad():
-
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
-
-                print('coeff_vector_gradients', coeff_vector_gradients[0])
-                self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients[0]
+            self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients[0]
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
