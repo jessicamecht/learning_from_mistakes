@@ -34,15 +34,16 @@ class Architect():
             self.logger.info(f'Weighted training loss to update r and V: {loss}')
 
             logits = fmodel(input)
-            val_loss = F.cross_entropy(logits, target)
-            coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector, retain_graph=True)
-            visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
+            meta_val_loss = F.cross_entropy(logits, target)
+            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
+            coeff_vector_gradients = coeff_vector_gradients[0].detach()
+            visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
             with torch.no_grad():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
-            self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients[0]
+            self.coefficient_vector = (self.coefficient_vector - 0.05 * coeff_vector_gradients)
             self.logger.info(f'New Coefficient Vector: {self.coefficient_vector}')
-            self.logger.info(f'New Visual Encoder Model Weights: {self.visual_encoder_model.parameters()}')
+            self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
