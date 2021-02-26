@@ -39,6 +39,7 @@ class Architect():
             visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
             #coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(), visual_encoder_gradients.detach()
             with torch.no_grad():
+                print(self.coefficient_vector.shape, self.w_weight_decay, coeff_vector_gradients.shape)
                 self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new) #TODO momentum and stuff
