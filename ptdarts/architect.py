@@ -31,17 +31,17 @@ class Architect():
             logits = fmodel(input)
             weights = self.calc_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
             loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-            foptimizer.step(loss)
+            foptimizer.step(loss) #replaces gradients with respect to model weights
 
             logits = fmodel(input)
             val_loss = F.cross_entropy(logits, target)
-            coeff_vector_gradients, visual_encoder_gradients = torch.autograd.grad(
-                val_loss, [coefficient_vector, visual_encoder.parameters()])
+            coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector)
+            visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())
             coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(
             ), visual_encoder_gradients.detach()
         return coeff_vector_gradients, visual_encoder_gradients
 
-    def calc_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
+    def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
         crit = nn.CrossEntropyLoss(reduction='none')
         predictive_performance = crit(val_logits, target_val)
@@ -58,7 +58,7 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         #calc weights
-        weights = self.calc_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
+        weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup
         model_backup = self.net.state_dict()
