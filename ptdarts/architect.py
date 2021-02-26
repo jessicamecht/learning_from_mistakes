@@ -97,13 +97,13 @@ class Architect():
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p += eps * d
-        loss = self.net.loss(trn_X, trn_y, weights)
+        loss = self.net.loss(trn_X, trn_y, weights, nn.CrossEntropyLoss())
         dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p -= 2. * eps * d
-        loss = self.net.loss(trn_X, trn_y, weights)
+        loss = self.net.loss(trn_X, trn_y, weights, nn.CrossEntropyLoss())
         dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
 
         # recover w

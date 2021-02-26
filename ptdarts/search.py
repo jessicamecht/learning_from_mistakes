@@ -50,7 +50,7 @@ def main(train_loader, valid_loader, config_path, writer):
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
     inputDim = next(iter(valid_loader))[0].shape[0]
-    coeff_vector = torch.ones(inputDim, 1)
+    coeff_vector = torch.ones(inputDim, 1, requires_grad=True)
     visual_encoder_coeff_vector_optimizer = torch.optim.Adam(visual_encoder_model.parameters() + coeff_vector, config.alpha_lr, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
 
     # alphas optimizer
