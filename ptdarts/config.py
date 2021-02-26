@@ -50,7 +50,7 @@ class SearchConfig(BaseConfig):
                             help='weight decay for weights')
         parser.add_argument('--w_grad_clip', type=float, default=5.,
                             help='gradient clipping for weights')
-        parser.add_argument('--print_freq', type=int, default=50, help='print frequency')
+        parser.add_argument('--print_freq', type=int, default=1, help='print frequency')
         parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
                             '`all` indicates use all gpus.')
         parser.add_argument('--epochs', type=int, default=300, help='# of training epochs')
@@ -86,7 +86,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--weight_decay', type=float, default=3e-4, help='weight decay')
         parser.add_argument('--grad_clip', type=float, default=5.,
                             help='gradient clipping for weights')
-        parser.add_argument('--print_freq', type=int, default=200, help='print frequency')
+        parser.add_argument('--print_freq', type=int, default=1, help='print frequency')
         parser.add_argument('--gpus', default='all', help='gpu device ids separated by comma. '
                             '`all` indicates use all gpus.')
         parser.add_argument('--epochs', type=int, default=300, help='# of training epochs')
