@@ -44,7 +44,7 @@ class Architect():
                     p.copy_(p-self.w_weight_decay*p_new)
 
                 print('coeff_vector_gradients', coeff_vector_gradients[0])
-                self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
+                self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients[0]
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
