@@ -41,9 +41,9 @@ class Architect():
             with torch.no_grad():
 
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
-                    p.copy_(p-self.w_weight_decay*p_new) #TODO momentum and stuff
+                    p.copy_(p-self.w_weight_decay*p_new)
 
-                print(print(visual_encoder_gradients), self.coefficient_vector.shape, self.w_weight_decay, coeff_vector_gradients)
+                print(self.coefficient_vector.shape, self.w_weight_decay, coeff_vector_gradients[0].shape, coeff_vector_gradients[1].shape)
                 self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
