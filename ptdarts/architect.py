@@ -35,7 +35,7 @@ class Architect():
 
             logits = fmodel(input)
             val_loss = F.cross_entropy(logits, target)
-            coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector)
+            coeff_vector_gradients = torch.autograd.grad(val_loss, coefficient_vector, retain_graph=True)
             visual_encoder_gradients = torch.autograd.grad(val_loss, visual_encoder.parameters())
             coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(
             ), visual_encoder_gradients.detach()
@@ -138,7 +138,7 @@ class Architect():
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, self.net.weights(), retain_graph=True)
+        gradients = torch.autograd.grad(loss, self.net.weights())
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         # dict key is not the value, but the pointer. So original network weight have to
