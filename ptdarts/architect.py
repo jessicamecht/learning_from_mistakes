@@ -29,7 +29,7 @@ class Architect():
     def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             logits = fmodel(input)
-            weights = self.calc_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
+            weights = self.calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
             loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(loss) #replaces gradients with respect to model weights
 
