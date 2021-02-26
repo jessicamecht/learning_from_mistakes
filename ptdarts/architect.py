@@ -145,10 +145,11 @@ class Architect():
         # dict key is not the value, but the pointer. So original network weight have to
         # be iterated also.
 
-        for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
-            m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
-            vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
-        # synchronize alphas
-        for a, va in zip(self.net.alphas(), self.v_net.alphas()):
-            va.copy_(a)
+        with torch.no_grad():
+            for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
+                m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
+                vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
+            # synchronize alphas
+            for a, va in zip(self.net.alphas(), self.v_net.alphas()):
+                va.copy_(a)
 
