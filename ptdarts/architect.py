@@ -6,10 +6,14 @@ from weight_samples.visual_similarity.visual_similarity import visual_validation
 from weight_samples.label_similarity.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
 import torch.nn as nn
+import higher
+import torch.nn.functional as F
+from loss import calculate_weighted_loss
+
 
 class Architect():
     """ Compute gradients of alphas """
-    def __init__(self, net, visual_encoder_model, coefficient_model, w_momentum, w_weight_decay):
+    def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay):
         """
         Args:
             net
@@ -17,15 +21,37 @@ class Architect():
         """
         self.net = net # SearchCNNController has alpha parameters and search cnn model
         self.visual_encoder_model = visual_encoder_model
-        self.coefficient_model = coefficient_model
-        self.v_visual_encoder_model = copy.deepcopy(visual_encoder_model)
-        self.v_coefficient_model = copy.deepcopy(coefficient_model)
+        self.coefficient_vector = coefficient_vector
         self.v_net = copy.deepcopy(net)
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
 
+    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
+        with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
+            logits = fmodel(input)
+            weights = self.calc_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
+            loss_fn = F.cross_entropy(reduction='none')
+            loss = calculate_weighted_loss(logits, target, criterion=loss_fn, weights=weights)
+            foptimizer.step(loss)
 
-    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
+            logits = fmodel(input)
+            val_loss = F.cross_entropy(logits, target)
+            coeff_vector_gradients, visual_encoder_gradients = torch.autograd.grad(
+                val_loss, [coefficient_vector, visual_encoder.parameters()])
+            coeff_vector_gradients, visual_encoder_gradients = coeff_vector_gradients.detach(
+            ), visual_encoder_gradients.detach()
+        return coeff_vector_gradients, visual_encoder_gradients
+
+    def calc_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
+        val_logits = model(input_val)
+        crit = nn.CrossEntropyLoss(reduction='none')
+        predictive_performance = crit(val_logits, target_val)
+        vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
+        label_similarity = measure_label_similarity(target_val, target_train)
+        weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
+        return weights
+
+    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim, v_r_optim):
 
         """ Compute unrolled loss and backward its gradients
         Args:
@@ -33,50 +59,27 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         #calc weights
-        # using W1 to calculate uj
-        val_logits = self.net(val_X)
-        r = nn.utils.parameters_to_vector(self.coefficient_model.parameters())[:-1]
-        crit = nn.CrossEntropyLoss(reduction='none')
-        u_j = crit(val_logits, val_y)
-        # 1. calculate weights
-        vis_similarity = visual_validation_similarity(self.visual_encoder_model, val_X, trn_X)
-        label_similarity = measure_label_similarity(val_y, trn_y)
-        a_i = sample_weights(u_j, vis_similarity, label_similarity, r)
+        weights = self.calc_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
+        self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
 
-        # do virtual step (calc w`)
-        self.virtual_step(trn_X, trn_y, xi, w_optim, a_i)
+        self.meta_learn(self.net, v_r_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
 
-        val_logits = self.v_net(val_X)
-        r = nn.utils.parameters_to_vector(self.v_coefficient_model.parameters())[:-1]
-        crit = nn.CrossEntropyLoss(reduction='none')
-        u_j = crit(val_logits, val_y)
-        # using W1 to calculate uj
-        # 1. calculate weights
-        vis_similarity = visual_validation_similarity(self.v_visual_encoder_model, val_X, trn_X)
-        label_similarity = measure_label_similarity(val_y, trn_y)
-        v_ai = sample_weights(u_j, vis_similarity, label_similarity, r)
-
-
-        # calc unrolled loss
+        # calc unrolled validation loss
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(w`)
 
-        # compute gradient
+        # compute gradients of alpha
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        r_weights = tuple(self.v_coefficient_model.parameters())
-        visual_encoder_weights = tuple(self.v_visual_encoder_model.parameters())
-        v_grads = torch.autograd.grad(loss, v_alphas  + visual_encoder_weights + r_weights + v_weights)
-        dalpha = v_grads[:len(v_alphas + visual_encoder_weights + r_weights)]#alpha gradients
-        dw = v_grads[len(v_alphas + visual_encoder_weights + r_weights):]#network gradients
+        dparams, dw = torch.autograd.grad(loss, [v_alphas, v_weights])
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y, a_i)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 
-        # update final gradient = dalpha - xi*hessian
+        # update final alpha gradient = dalpha - xi*hessian
         with torch.no_grad():
-            for alpha, da, h in zip(self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters(), dalpha, hessian):
-                alpha.grad = da - xi*h
+            for param, dparam, h in zip(self.net.alphas(), dparams, hessian):
+                param.grad = dparam - xi*h
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
@@ -95,13 +98,13 @@ class Architect():
             for p, d in zip(self.net.weights(), dw):
                 p += eps * d
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_pos = torch.autograd.grad(loss, chain(self.net.alphas(), self.coefficient_model.parameters(), self.visual_encoder_model.parameters())) # dalpha { L_trn(w+) }
+        dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
         # w- = w - eps*dw`
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p -= 2. * eps * d
         loss = self.net.loss(trn_X, trn_y, weights)
-        dalpha_neg = torch.autograd.grad(loss, self.net.alphas() + self.coefficient_model.parameters() + self.visual_encoder_model.parameters()) # dalpha { L_trn(w-) }
+        dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
 
         # recover w
         with torch.no_grad():
@@ -128,7 +131,7 @@ class Architect():
         """
         # forward & calc loss
         #calc weights using encoder etc and calc loss on training
-        loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
+        loss = self.net.loss(trn_X, trn_y, weights, nn.CrossEntropyLoss(reduction='none')) # L_trn(w)
 
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights())
@@ -139,13 +142,8 @@ class Architect():
 
         for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
             m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
-            test = torch.clone(w - xi * (m + g + self.w_weight_decay*w))
-            if i == 0:
-                print(test, '1')
-            vw.data = test
-            if i == 0:
-                print(vw)
+            vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
         # synchronize alphas
         for a, va in zip(self.net.alphas(), self.v_net.alphas()):
-            va.data = torch.clone(a)
+            va.copy_(a)
 

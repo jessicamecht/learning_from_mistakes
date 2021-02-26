@@ -15,6 +15,7 @@ dependencies:
     - tensorboardX
     - Pillow==6.2.2
     - tensorflow==2.4.1
+    - higher
   - numpy==1.19.2
   - torchvision
   - tensorboard==1.13.0
