@@ -43,7 +43,7 @@ class Architect():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
 
-                print('coeff_vector_gradients', coeff_vector_gradients)
+                print('coeff_vector_gradients', coeff_vector_gradients[0])
                 self.coefficient_vector = self.coefficient_vector - self.w_weight_decay * coeff_vector_gradients
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
