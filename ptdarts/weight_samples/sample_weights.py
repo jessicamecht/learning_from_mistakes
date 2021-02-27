@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from ptdarts.weight_samples.visual_similarity import visual_validation_similarity
-from ptdarts.weight_samples.label_similarity import measure_label_similarity
+from weight_samples.visual_similarity import visual_validation_similarity
+from weight_samples.label_similarity import measure_label_similarity
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
