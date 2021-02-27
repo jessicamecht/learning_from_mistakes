@@ -1,8 +1,8 @@
 """ CNN for network augmentation """
 import torch
 import torch.nn as nn
-from ptdarts.models.augment_cells import AugmentCell
-from ptdarts.models import ops
+from models.augment_cells import AugmentCell
+from models import ops
 
 
 class AuxiliaryHead(nn.Module):

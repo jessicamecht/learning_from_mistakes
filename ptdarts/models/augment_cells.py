@@ -1,8 +1,8 @@
 """ CNN cell for network augmentation """
 import torch
 import torch.nn as nn
-from ptdarts.models import ops
-import ptdarts.genotypes as gt
+from models import ops
+import genotypes as gt
 
 
 class AugmentCell(nn.Module):

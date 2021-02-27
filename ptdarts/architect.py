@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import higher
 import torch.nn.functional as F
-from ptdarts.weight_samples.sample_weights import calc_instance_weights
+from weight_samples.sample_weights import calc_instance_weights
 
 
 class Architect():

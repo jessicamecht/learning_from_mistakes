@@ -5,7 +5,7 @@ import shutil
 import torch
 import torchvision.datasets as dset
 import numpy as np
-import ptdarts.preproc as preproc
+import preproc as preproc
 
 
 def get_data(dataset, data_path, cutout_length, validation):

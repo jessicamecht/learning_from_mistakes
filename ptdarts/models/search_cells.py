@@ -1,7 +1,7 @@
 """ CNN cell for architecture search """
 import torch
 import torch.nn as nn
-from ptdarts.models import ops
+from models import ops
 
 
 class SearchCell(nn.Module):

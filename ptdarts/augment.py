@@ -3,11 +3,11 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-from ptdarts.config import AugmentConfig
-import ptdarts.utils as utils
-from ptdarts.models.augment_cnn import AugmentCNN
-import ptdarts.genotypes as gt
-from ptdarts.loss import calculate_weighted_loss
+from config import AugmentConfig
+import utils as utils
+from models.augment_cnn import AugmentCNN
+import genotypes as gt
+from loss import calculate_weighted_loss
 config = AugmentConfig()
 
 device = torch.device("cuda")

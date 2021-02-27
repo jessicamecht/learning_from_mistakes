@@ -4,7 +4,7 @@ import sys
 sys.path.append('..')
 import torch
 import torch.nn as nn
-from ptdarts.models.search_cnn import SearchCNNController
+from models.search_cnn import SearchCNNController
 import copy
 import time
 import argparse
