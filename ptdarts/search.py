@@ -111,6 +111,7 @@ def main(train_loader, valid_loader, config_path, writer):
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger):
+    print(torch.cuda.get_device_properties(device).total_memory)
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
