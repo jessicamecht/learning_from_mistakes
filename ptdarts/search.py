@@ -25,6 +25,7 @@ logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)
 config.print_params(logger.info)
 
 def main():
+    torch.backends.cudnn.enabled = False
     train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
     train_loader, valid_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=config.batch_size,
                                                                  worker=config.workers)
