@@ -1,5 +1,8 @@
 import torch
 import torch.nn as nn
+import os,sys
+sys.path.append('../')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ptdarts.weight_samples.visual_similarity import visual_validation_similarity
 from ptdarts.weight_samples.label_similarity import measure_label_similarity
 from ptdarts.weight_samples.sample_weights import sample_weights
