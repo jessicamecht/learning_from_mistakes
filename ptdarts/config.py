@@ -45,6 +45,8 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--batch_size', type=int, default=30, help='batch size')
         parser.add_argument('--w_lr', type=float, default=0.025, help='lr for weights')
         parser.add_argument('--w_lr_min', type=float, default=0.001, help='minimum lr for weights')
+        parser.add_argument('--vis_enc_lr', type=float, default=0.025, help='lr for visual encoder')
+        parser.add_argument('--coeff_vec_lr', type=float, default=0.025, help='lr for coefficient vector')
         parser.add_argument('--w_momentum', type=float, default=0.9, help='momentum for weights')
         parser.add_argument('--w_weight_decay', type=float, default=3e-4,
                             help='weight decay for weights')

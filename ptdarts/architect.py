@@ -9,7 +9,7 @@ from weight_samples.sample_weights import calc_instance_weights
 
 class Architect():
     """Object to handle the """
-    def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay, logger=None):
+    def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay, eps_lr_vis_encoder, gamma_lr_coeff_vec, logger=None):
         """
         Args:
             net: current network architecture model
@@ -26,8 +26,10 @@ class Architect():
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
         self.logger=logger
+        self.eps_lr_vis_encoder = eps_lr_vis_encoder
+        self.gamma_lr_coeff_vec = gamma_lr_coeff_vec
 
-    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder, eps=0.01, gamma=0.01):
+    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
         '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
         able to optimize through the validation loss because pytorch does not allow parameters to have grad_fn's
 
@@ -67,10 +69,10 @@ class Architect():
             #Update the visual encoder weights
             with torch.no_grad():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
-                    p.copy_(p-self.w_weight_decay*p_new)
+                    p.copy_(p-self.eps_lr_vis_encoder*p_new)
 
             #Update the coefficient vector
-            new_coefficient_vector = (self.coefficient_vector - 0.05 * coeff_vector_gradients)
+            new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             self.coefficient_vector = new_coefficient_vector
             #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
