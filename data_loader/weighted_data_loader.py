@@ -35,7 +35,7 @@ class WeightedCIFAR(CIFAR10):
         self.instance_weights = instance_weight_np
         np.save(os.path.join(self.root, self.base_folder, "instance_weights.npy"), self.instance_weights)
 
-def loadCIFARData(root = 'data'):
+def loadCIFARData(root = '../data'):
     '''loads the cifar dataset and creates train, test and validation splits'''
     train_data = WeightedCIFAR(root=root, train=True, download=True, transform=transform_train)
     test_data = WeightedCIFAR(root=root, train=False, download=True, transform=transform_test)
