@@ -7,7 +7,7 @@ from ptdarts.config import AugmentConfig
 import ptdarts.utils as utils
 from ptdarts.models.augment_cnn import AugmentCNN
 import ptdarts.genotypes as gt
-from loss import calculate_weighted_loss
+from ptdarts.loss import calculate_weighted_loss
 config = AugmentConfig()
 
 device = torch.device("cuda")

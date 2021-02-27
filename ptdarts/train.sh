@@ -9,5 +9,5 @@ conda env create -f environment.yaml
 source activate lfm
 nvidia-smi
 nvidia-smi
-python main_lfm.py
+python search.py
 

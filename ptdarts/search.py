@@ -8,18 +8,26 @@ import ptdarts.utils as utils
 from ptdarts.models.search_cnn import SearchCNNController
 from ptdarts.architect import Architect
 import gc
-from loss import calculate_weighted_loss
+from tensorboardX import SummaryWriter
+from ptdarts.loss import calculate_weighted_loss
 from ptdarts.models.visual_encoder import Resnet_Encoder
+from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 config = SearchConfig()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def main(train_loader, valid_loader, config_path, writer):
-    writer.add_text('config', config.as_markdown(), 0)
+# tensorboard
+writer = SummaryWriter(log_dir=os.path.join(config.path, "tensorboard"))
+writer.add_text('config', config.as_markdown(), 0)
 
-    logger = utils.get_logger(os.path.join(config_path, "{}.log".format(config.name)))
-    config.print_params(logger.info)
+logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
+config.print_params(logger.info)
+
+def main():
+    train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
+    train_loader, valid_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=config.batch_size,
+                                                                 worker=config.workers)
     logger.info("Logger is set - training start")
 
     # set default gpu device id
@@ -50,6 +58,8 @@ def main(train_loader, valid_loader, config_path, writer):
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
     inputDim = next(iter(valid_loader))[0].shape[0]
+
+    #Init coefficient vector r 
     coeff_vector = torch.ones(inputDim, 1, requires_grad=True).to(device)
 
     # alphas optimizer
@@ -101,8 +111,8 @@ def main(train_loader, valid_loader, config_path, writer):
             is_best = False
         state = {'epoch': epoch + 1, 'state_dict': model.state_dict(),
                  'w_optim': w_optim.state_dict(), "alpha_optim": alpha_optim.state_dict()}
-        utils.save_checkpoint(state, config_path + '/resume_checkpoints')
-        utils.save_checkpoint(model, config_path, is_best)
+        utils.save_checkpoint(state, config.path + '/resume_checkpoints')
+        utils.save_checkpoint(model, config.path, is_best)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
@@ -158,6 +168,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+
+        #free memory
         del trn_y, trn_X, val_y, val_X, weights_train, weights_valid
         gc.collect()
         torch.cuda.empty_cache()
@@ -192,6 +204,8 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
+
+            #free memory
             del X, y, weights
             gc.collect()
             torch.cuda.empty_cache()
