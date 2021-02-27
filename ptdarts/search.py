@@ -107,7 +107,6 @@ def main(train_loader, valid_loader, config_path, writer):
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
     writer.add_graph(model.encoder, next(iter(valid_loader)))
-    return model
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger):
