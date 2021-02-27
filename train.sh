@@ -9,5 +9,6 @@ conda env create -f environment.yaml
 source activate lfm
 nvidia-smi
 nvidia-smi
+tensorboard --logdir=tensorboard
 python main_lfm.py
 
