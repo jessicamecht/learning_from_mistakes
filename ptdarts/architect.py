@@ -1,8 +1,8 @@
 """ Architect controls architecture of cell by computing gradients of alphas and makes one step gradient descent updates of the visual encoder Vand coefficient vector r """
 import copy
 import torch
-from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
-from weight_samples.label_similarity.label_similarity import measure_label_similarity
+from weight_samples.visual_similarity import visual_validation_similarity
+from weight_samples.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
 import torch.nn as nn
 import higher

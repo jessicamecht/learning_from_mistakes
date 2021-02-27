@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
-from weight_samples.label_similarity.label_similarity import measure_label_similarity
+from weight_samples.visual_similarity import visual_validation_similarity
+from weight_samples.label_similarity import measure_label_similarity
 from weight_samples.sample_weights import sample_weights
 from utils import progress
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
