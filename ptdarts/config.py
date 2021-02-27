@@ -42,7 +42,7 @@ class SearchConfig(BaseConfig):
         parser = get_parser("Search config")
         parser.add_argument('--name', required=False, default='CIFAR10')
         parser.add_argument('--dataset', required=False, default='CIFAR10', help='CIFAR10 / MNIST / FashionMNIST')
-        parser.add_argument('--batch_size', type=int, default=10, help='batch size')
+        parser.add_argument('--batch_size', type=int, default=30, help='batch size')
         parser.add_argument('--w_lr', type=float, default=0.025, help='lr for weights')
         parser.add_argument('--w_lr_min', type=float, default=0.001, help='minimum lr for weights')
         parser.add_argument('--w_momentum', type=float, default=0.9, help='momentum for weights')
