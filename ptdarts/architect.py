@@ -1,4 +1,4 @@
-""" Architect controls architecture of cell by computing gradients of alphas """
+""" Architect controls architecture of cell by computing gradients of alphas and makes one step gradient descent updates of the visual encoder Vand coefficient vector r """
 import copy
 import torch
 from weight_samples.visual_similarity.visual_similarity import visual_validation_similarity
@@ -10,12 +10,16 @@ import torch.nn.functional as F
 
 
 class Architect():
-    """ Compute gradients of alphas """
+    """Object to handle the """
     def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay, logger=None):
         """
         Args:
-            net
+            net: current network architecture model
+            visual_encoder_model: visual encoder neural network
+            coefficient_vector: torch of size (number training examples, 1)
             w_momentum: weights momentum
+            w_weight_decay: Int
+
         """
         self.net = net # SearchCNNController has alpha parameters and search cnn model
         self.visual_encoder_model = visual_encoder_model
@@ -25,29 +29,66 @@ class Architect():
         self.w_weight_decay = w_weight_decay
         self.logger=logger
 
-    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
+    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder, eps=0.01, gamma=0.01):
+        '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
+        able to optimize through the validation loss because pytorch does not allow parameters to have grad_fn's
+
+        Calculates the weighted training loss and performs a weight update, then calculates the validation loss and makes
+        an update of the weights of the visual encoder and coefficient vector
+
+        V' <- V - eps * d L_{Val}/dV
+        r' <- r - gamma * d L_{Val}/dr
+
+        Args:
+            model: current network architecture model
+            optimizer: weight optimizer for model
+            input: training input of size (number of training images, channels, height, width)
+            target: training target of size (number train examples, 1)
+            input_val: validation input of size (number of validation images, channels, height, width)
+            target_val: validation target of size (number val examples, 1)
+            coefficient_vector: Tensor of size (number train examples, 1)
+            visual_encoder: Visual encoder neural network to calculate instance weights
+            eps: Float learning rate for visual encoder
+            gamma: Float learning rate for coefficient vector
+            '''
+
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
+            #functional version of model allows gradient propagation through parameters of a model
             logits = fmodel(input)
             weights = self.calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
-            loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-            foptimizer.step(loss) #replaces gradients with respect to model weights
-            self.logger.info(f'Weighted training loss to update r and V: {loss}')
+            weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
+            foptimizer.step(weighted_training_loss) #replaces gradients with respect to model weights
+            self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
 
             logits = fmodel(input)
             meta_val_loss = F.cross_entropy(logits, target)
             coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
+
+            #Update the visual encoder weights
             with torch.no_grad():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
+
+            #Update the coefficient vector
             new_coefficient_vector = (self.coefficient_vector - 0.05 * coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             self.coefficient_vector = new_coefficient_vector
             #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
-            #print("Updated V and r.")
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
+        '''calculates the weights for each training instance with respect to the validation instances to be used for weighted
+        training loss
+        Args:
+            input_train: (number of training images, channels, height, width)
+            target_train: (number training images, 1)
+            input_val: (number of validation images, channels, height, width)
+            target_val:(number validation images, 1)
+            model: current architecture model to calculate predictive performance (forward pass)
+            coefficient: current coefficient vector of size (number train examples, 1)
+            '''
+
         val_logits = model(input_val)
         crit = nn.CrossEntropyLoss(reduction='none')
         predictive_performance = crit(val_logits, target_val)
@@ -58,16 +99,21 @@ class Architect():
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
-        """ Compute unrolled loss and backward its gradients
+        """ Compute unrolled loss for the alphas and backward its gradients
+            Meta lerarn the coefficient vector and visual encoder with one step gradient descent
         Args:
+            trn_X: (number of training images, channels, height, width)
+            trn_y: (number training images, 1)
+            val_X: (number of validation images, channels, height, width)
+            val_y:(number validation images, 1)
             xi: learning rate for virtual gradient step (same as net lr)
             w_optim: weights optimizer - for virtual step
         """
-        #calc weights
+        #calc weights for weighted training loss in virtual step
         weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
         #self.logger.info(f'Training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
-        #backup
+        #backup before doing meta learning cause we only do one step gradient descent and don't want to change the weights just yet
         model_backup = self.net.state_dict()
         w_optim_backup = w_optim.state_dict()
 
@@ -79,7 +125,7 @@ class Architect():
 
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
-        loss = crit(logits, val_y) # L_val(w`)
+        loss = crit(logits, val_y) # L_val(A,W2∗(W1∗(A),V,r),D(val))
         self.logger.info(f'Validation Loss to update Alpha: {loss}')
 
         # compute gradients of alpha
@@ -93,7 +139,7 @@ class Architect():
                                              self.visual_encoder_model)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 
-        # update final alpha gradient = dalpha - xi*hessian
+        # update final alpha gradient with approximation = dalpha - xi*hessian
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
@@ -102,10 +148,10 @@ class Architect():
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
         """
-        dw = dw` { L_val(w`, alpha) }
+        dw = dw` { L_val(A,W2∗(W1∗(A),V,r),D(val)) } with A being alpha
         w+ = w + eps * dw
         w- = w - eps * dw
-        hessian = (dalpha { a * L_trn(w+, alpha) } - dalpha { a * L_trn(w-, alpha) }) / (2*eps)
+        hessian = (dalpha { a * L_trn(w+, alpha) } - dalpha { a * L_trn(w-, alpha) }) / (2*eps) with weights a
         eps = 0.01 / ||dw||
         """
 
@@ -135,7 +181,8 @@ class Architect():
 
     def virtual_step(self, trn_X, trn_y, xi, w_optim, weights):
         """
-        updates the weights W_2' by minimizing the weighted training loss
+        updates the weights W_2' in the virtual network by minimizing the
+        weighted training loss given current state of visual encoder, coefficient vector and W1* TODO ???
         Compute unrolled weight w' (virtual step)
 
         Step process:
@@ -148,17 +195,18 @@ class Architect():
             xi: learning rate for virtual gradient step (same as weights lr)
             w_optim: weights optimizer
         """
-        # forward & calc loss
-        #calc weights using encoder etc and calc loss on training
+        #forward and calc weighted loss on training
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
         self.logger.info(f'Weighted training loss in Virtual Step: {loss}')
-        # compute gradient
+        # compute gradient wrt weighted loss for network weights
         gradients = torch.autograd.grad(loss, self.net.weights())
+
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
         # dict key is not the value, but the pointer. So original network weight have to
         # be iterated also.
-        #print("Virtual Step")
+
+        # Updates the weights in the virtual network
         with torch.no_grad():
             for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
                 m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum

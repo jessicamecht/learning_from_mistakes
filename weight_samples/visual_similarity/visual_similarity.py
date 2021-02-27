@@ -1,12 +1,8 @@
 import torch
-import torch.nn as nn
 import os, sys
-from torchvision import transforms
 torch.autograd.set_detect_anomaly(True)
 sys.path.append('../')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
-from weight_samples.visual_similarity import resnet_model
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -40,19 +36,3 @@ def extract_resnet_features(images, model):
     img_var = images
     features_var = model(img_var) # get the output from the last hidden layer of the pretrained resnet
     return torch.squeeze(features_var)
-
-'''
-def create_visual_feature_extractor_model(init=False):
-  #instantiates the pretrained resnet model
-   #:param init Boolean chooses pretrained resnet 50 or the updated weighted resnet model
-   #:returns instantiated torch nn model 
-
-  name = 'weighted_resnet_model' if not init else 'resnet50'
-  resnet_50_model = resnet_model.resnet50(pretrained=True, pretrained_name=name)
-  resnet_50_model = resnet_50_model.to(device)
-  modules = list(resnet_50_model.children())[:-1]
-  resnet_50_model = nn.Sequential(*modules)
-  for p in resnet_50_model.parameters():
-    p.requires_grad = False
-  return resnet_50_model
-'''
