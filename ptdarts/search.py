@@ -127,8 +127,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)#calculates gradient for alphas and updates V and r
-        alpha_optim.step()
+
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
+        alpha_optim.step() #updates weights for alphas
+        print("Updated alphas")
 
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()
@@ -139,6 +141,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
+        print("Updated W1 weights with training CEL ")
 
         prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)

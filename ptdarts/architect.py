@@ -41,9 +41,11 @@ class Architect():
             with torch.no_grad():
                 for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.copy_(p-self.w_weight_decay*p_new)
-            self.coefficient_vector = (self.coefficient_vector - 0.05 * coeff_vector_gradients)
-            self.logger.info(f'New Coefficient Vector: {self.coefficient_vector}')
-            self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
+            new_coefficient_vector = (self.coefficient_vector - 0.05 * coeff_vector_gradients)
+            #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
+            self.coefficient_vector = new_coefficient_vector
+            #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
+            print("Updated V and r.")
 
     def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
         val_logits = model(input_val)
@@ -63,7 +65,7 @@ class Architect():
         """
         #calc weights
         weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
-        self.logger.info(f'Initial training instance weights: {weights}')
+        #self.logger.info(f'Training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup
         model_backup = self.net.state_dict()
@@ -74,6 +76,7 @@ class Architect():
         self.net.load_state_dict(model_backup)
         w_optim.load_state_dict(w_optim_backup)
         # calc unrolled validation loss to update alphas
+
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(w`)
@@ -94,6 +97,7 @@ class Architect():
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
+        print("Updated alpha gradients")
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
@@ -101,7 +105,7 @@ class Architect():
         dw = dw` { L_val(w`, alpha) }
         w+ = w + eps * dw
         w- = w - eps * dw
-        hessian = (dalpha { L_trn(w+, alpha) } - dalpha { L_trn(w-, alpha) }) / (2*eps)
+        hessian = (dalpha { a * L_trn(w+, alpha) } - dalpha { a * L_trn(w-, alpha) }) / (2*eps)
         eps = 0.01 / ||dw||
         """
 
@@ -154,7 +158,7 @@ class Architect():
         # below operations do not need gradient tracking
         # dict key is not the value, but the pointer. So original network weight have to
         # be iterated also.
-
+        print("Virtual Step")
         with torch.no_grad():
             for i, (w, vw, g) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients)):
                 m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
