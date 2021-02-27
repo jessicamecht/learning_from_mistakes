@@ -3,14 +3,14 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-from ptdarts.config import SearchConfig
-import ptdarts.utils as utils
-from ptdarts.models.search_cnn import SearchCNNController
-from ptdarts.architect import Architect
+from config import SearchConfig
+import utils as utils
+from models.search_cnn import SearchCNNController
+from architect import Architect
 import gc
 from tensorboardX import SummaryWriter
-from ptdarts.loss import calculate_weighted_loss
-from ptdarts.models.visual_encoder import Resnet_Encoder
+from loss import calculate_weighted_loss
+from models.visual_encoder import Resnet_Encoder
 from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 config = SearchConfig()
