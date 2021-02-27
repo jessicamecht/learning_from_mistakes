@@ -59,7 +59,7 @@ def main():
     visual_encoder_model = visual_encoder_model.to(device)
     inputDim = next(iter(valid_loader))[0].shape[0]
 
-    #Init coefficient vector r 
+    #Init coefficient vector r
     coeff_vector = torch.ones(inputDim, 1, requires_grad=True).to(device)
 
     # alphas optimizer
