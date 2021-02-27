@@ -1,12 +1,10 @@
 """ Architect controls architecture of cell by computing gradients of alphas and makes one step gradient descent updates of the visual encoder Vand coefficient vector r """
 import copy
 import torch
-from weight_samples.visual_similarity import visual_validation_similarity
-from weight_samples.label_similarity import measure_label_similarity
-from weight_samples.sample_weights import sample_weights
 import torch.nn as nn
 import higher
 import torch.nn.functional as F
+from weight_samples.sample_weights import calc_instance_weights
 
 
 class Architect():
@@ -55,7 +53,7 @@ class Architect():
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             #functional version of model allows gradient propagation through parameters of a model
             logits = fmodel(input)
-            weights = self.calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
+            weights = calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
             weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(weighted_training_loss) #replaces gradients with respect to model weights
             self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
@@ -77,26 +75,6 @@ class Architect():
             self.coefficient_vector = new_coefficient_vector
             #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
 
-    def calc_instance_weights(self, input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
-        '''calculates the weights for each training instance with respect to the validation instances to be used for weighted
-        training loss
-        Args:
-            input_train: (number of training images, channels, height, width)
-            target_train: (number training images, 1)
-            input_val: (number of validation images, channels, height, width)
-            target_val:(number validation images, 1)
-            model: current architecture model to calculate predictive performance (forward pass)
-            coefficient: current coefficient vector of size (number train examples, 1)
-            '''
-
-        val_logits = model(input_val)
-        crit = nn.CrossEntropyLoss(reduction='none')
-        predictive_performance = crit(val_logits, target_val)
-        vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
-        label_similarity = measure_label_similarity(target_val, target_train)
-        weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
-        return weights
-
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
         """ Compute unrolled loss for the alphas and backward its gradients
@@ -110,7 +88,7 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         #calc weights for weighted training loss in virtual step
-        weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
+        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
         #self.logger.info(f'Training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup before doing meta learning cause we only do one step gradient descent and don't want to change the weights just yet
@@ -135,7 +113,7 @@ class Architect():
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
 
-        weights = self.calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
+        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
                                              self.visual_encoder_model)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
 

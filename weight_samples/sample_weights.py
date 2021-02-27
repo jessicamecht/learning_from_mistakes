@@ -1,4 +1,8 @@
 import torch
+import torch.nn as nn
+from weight_samples.visual_similarity import visual_validation_similarity
+from weight_samples.label_similarity import measure_label_similarity
+from weight_samples.sample_weights import sample_weights
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -28,3 +32,23 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     a = torch.sigmoid(dp)
     assert(a.shape[0]== visual_similarity_scores.shape[0])
     return a
+
+def calc_instance_weights(input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
+    '''calculates the weights for each training instance with respect to the validation instances to be used for weighted
+    training loss
+    Args:
+        input_train: (number of training images, channels, height, width)
+        target_train: (number training images, 1)
+        input_val: (number of validation images, channels, height, width)
+        target_val:(number validation images, 1)
+        model: current architecture model to calculate predictive performance (forward pass)
+        coefficient: current coefficient vector of size (number train examples, 1)
+        '''
+
+    val_logits = model(input_val)
+    crit = nn.CrossEntropyLoss(reduction='none')
+    predictive_performance = crit(val_logits, target_val)
+    vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
+    label_similarity = measure_label_similarity(target_val, target_train)
+    weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
+    return weights
