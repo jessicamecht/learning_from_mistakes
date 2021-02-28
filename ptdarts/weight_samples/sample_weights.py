@@ -46,7 +46,7 @@ def calc_instance_weights(input_train, target_train, input_val, target_val, mode
 
     val_logits = model(input_val)
     crit = nn.CrossEntropyLoss(reduction='none')
-    predictive_performance = crit(val_logits, target_val)
+    predictive_performance = -1 * crit(val_logits, target_val)
     vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
     label_similarity = measure_label_similarity(target_val, target_train)
     weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
