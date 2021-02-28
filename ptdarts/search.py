@@ -13,14 +13,13 @@ from loss import calculate_weighted_loss
 from models.visual_encoder import Resnet_Encoder
 from torchvision.datasets import CIFAR10
 from torchvision import transforms
-from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 config = SearchConfig()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # tensorboard
-writer = SummaryWriter(log_dir=os.path.join(config.path, "tensorboard"))
+writer = SummaryWriter(log_dir="tensorboard")
 writer.add_text('config', config.as_markdown(), 0)
 
 logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
