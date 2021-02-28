@@ -71,9 +71,9 @@ class Architect():
                 for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     p.grad += grad.detach()
 
-            #Update the coefficient vector
-            for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
-                p.grad += grad.detach()
+                #Update the coefficient vector
+                for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
+                    p.grad += grad.detach()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             #self.coefficient_vector = new_coefficient_vector
