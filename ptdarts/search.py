@@ -72,7 +72,7 @@ def main():
     net_crit = calculate_weighted_loss
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
-    model = model.to(device)
+    model = model.to(device, non_blocking=True)
 
 
     # weights optimizer
@@ -82,7 +82,7 @@ def main():
 
     # Init Visual encoder model
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
-    visual_encoder_model = visual_encoder_model.to(device)
+    visual_encoder_model = visual_encoder_model.to(device, non_blocking=True)
     inputDim = next(iter(valid_loader))[0].shape[0]
 
     #Init coefficient vector r
@@ -160,7 +160,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
 
     model.train()
 
-    for step, ((trn_X, trn_y, weights_train), (val_X, val_y, weights_valid)) in enumerate(zip(train_loader, valid_loader)):
+    for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
@@ -206,7 +206,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         cur_step += 1
 
         #free memory
-        del trn_y, trn_X, val_y, val_X, weights_train, weights_valid
+        del trn_y, trn_X, val_y, val_X
         gc.collect()
         torch.cuda.empty_cache()
 
@@ -222,7 +222,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
     model.eval()
 
     with torch.no_grad():
-        for step, (X, y, weights) in enumerate(valid_loader):
+        for step, (X, y) in enumerate(valid_loader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             N = X.size(0)
 
@@ -242,7 +242,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
                         top1=top1, top5=top5))
 
             #free memory
-            del X, y, weights
+            del X, y
             gc.collect()
             torch.cuda.empty_cache()
 
