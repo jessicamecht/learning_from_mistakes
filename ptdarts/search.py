@@ -170,10 +170,13 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         coeff_vector_optimizer.zero_grad()
 
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
-
+        print(architect.visual_encoder_model.parameters()[0])
+        print(architect.coefficient_vector)
         alpha_optim.step() #updates weights for alphas
         visual_encoder_optimizer.step() #updates visual encoder weights
         coeff_vector_optimizer.step()#updates coefficient vector
+        print(architect.visual_encoder_model.parameters()[0])
+        print(architect.coefficient_vector)
         #print("Updated alphas")
 
         # phase 1. child network step (w) minimizes the training loss
