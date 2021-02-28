@@ -11,6 +11,8 @@ import gc
 from tensorboardX import SummaryWriter
 from loss import calculate_weighted_loss
 from models.visual_encoder import Resnet_Encoder
+from torchvision.datasets import CIFAR10
+from torchvision import transforms
 from data_loader.weighted_data_loader import loadCIFARData, getWeightedDataLoaders
 
 config = SearchConfig()
@@ -25,9 +27,33 @@ logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)
 config.print_params(logger.info)
 
 def main():
-    train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
-    train_loader, valid_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=config.batch_size,
-                                                                 worker=config.workers)
+    #train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
+    #train_loader, valid_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=config.batch_size, worker=config.workers)
+    # define transforms for cifar dataset
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    # Normalize the test set same as training set without augmentation
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+    root = '../data'
+    train_data = CIFAR10(root=root, train=True, download=True, transform=transform_train)
+    test_data = CIFAR10(root=root, train=False, download=True, transform=transform_test)
+    torch.manual_seed(43)
+    val_data_size = len(train_data) // 2  # use half of the dataset for validation
+    train_size = len(train_data) - val_data_size
+    train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
+    train_loader = torch.utils.data.DataLoader(train_data, config.batch_size, shuffle=True, num_workers=config.workers,
+                                               pin_memory=True, drop_last=True)
+    val_loader = torch.utils.data.DataLoader(val_data, config.batch_size, num_workers=config.workers, pin_memory=True, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=config.workers, pin_memory=True,
+                                              drop_last=True)
     logger.info("Logger is set - training start")
 
     # set default gpu device id
@@ -140,9 +166,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)
-        alpha_optim.zero_grad()
-        visual_encoder_optimizer.zero_grad()
-        coeff_vector_optimizer.zero_grad()
+        alpha_optim.zero_grad(set_to_none=True)
+        visual_encoder_optimizer.zero_grad(set_to_none=True)
+        coeff_vector_optimizer.zero_grad(set_to_none=True)
 
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
 
