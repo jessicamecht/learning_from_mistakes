@@ -166,9 +166,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         N = trn_X.size(0)
 
         # phase 2. architect step (alpha)
-        alpha_optim.zero_grad(set_to_none=True)
-        visual_encoder_optimizer.zero_grad(set_to_none=True)
-        coeff_vector_optimizer.zero_grad(set_to_none=True)
+        alpha_optim.zero_grad()
+        visual_encoder_optimizer.zero_grad()
+        coeff_vector_optimizer.zero_grad()
 
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
 
