@@ -79,7 +79,7 @@ def main():
     best_top1 = 0.
     for epoch in range(config.epochs):
         lr_scheduler.step()
-        lr = lr_scheduler.get_last_lr()
+        lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
         architect.print_coefficients(logger)
