@@ -64,17 +64,19 @@ class Architect():
             meta_val_loss = F.cross_entropy(logits, target)
             coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
-            visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters())#equivalent to backward but only for given parameters
+            visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters()) #equivalent to backward for given parameters
 
             #Update the visual encoder weights
             with torch.no_grad():
-                for p, p_new in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
-                    p.copy_(p-self.eps_lr_vis_encoder*p_new)
+                for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
+                    p.grad += grad.detach()
 
             #Update the coefficient vector
-            new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
+            for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
+                p.grad += grad.detach()
+            #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
-            self.coefficient_vector = new_coefficient_vector
+            #self.coefficient_vector = new_coefficient_vector
             #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
@@ -162,7 +164,7 @@ class Architect():
     def virtual_step(self, trn_X, trn_y, xi, w_optim, weights):
         """
         updates the weights W_2' in the virtual network by minimizing the
-        weighted training loss given current state of visual encoder, coefficient vector and W1* TODO ???
+        weighted training loss given current state of visual encoder, coefficient vector and W1*
         Compute unrolled weight w' (virtual step)
 
         Step process:

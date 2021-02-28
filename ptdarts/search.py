@@ -65,6 +65,11 @@ def main():
     # alphas optimizer
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
 
+    # meta learning coeff vector visual encoder optimizer
+    visual_encoder_optimizer = torch.optim.Adam(visual_encoder_model.parameters(), betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
+    coeff_vector_optimizer = torch.optim.Adam(coeff_vector, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
+
+
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         w_optim, config.epochs, eta_min=config.w_lr_min)
     architect = Architect(model, visual_encoder_model, coeff_vector, config.w_momentum, config.w_weight_decay, config.vis_enc_lr, config.coeff_vec_lr, logger)
@@ -81,7 +86,7 @@ def main():
         architect.print_visual_weights(logger)
 
         # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
@@ -119,7 +124,7 @@ def main():
     writer.add_graph(model.encoder, next(iter(valid_loader)))
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, writer, logger):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -136,9 +141,14 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
+        visual_encoder_optimizer.zero_grad()
+        coeff_vector_optimizer.zero_grad()
 
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
+
         alpha_optim.step() #updates weights for alphas
+        visual_encoder_optimizer.step() #updates visual encoder weights
+        coeff_vector_optimizer.step()#updates coefficient vector
         #print("Updated alphas")
 
         # phase 1. child network step (w) minimizes the training loss
