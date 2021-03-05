@@ -13,6 +13,7 @@ dependencies:
     - pydicom
     - pyyaml
     - tensorboardX
+    - tensorboard
     - Pillow==6.2.2
     - tensorflow==2.4.1
     - higher
