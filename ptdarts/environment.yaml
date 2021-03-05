@@ -21,9 +21,9 @@ dependencies:
   - torchvision
   - tensorboard==1.13.0
   - tensorboardX==1.6
-  - cudatoolkit
-  - pytorch==1.7.0+cu110
-  - torchvision==0.8.0+cu110
+  - cudatoolkit==10.2
+  - pytorch==1.7.0
+  - torchvision==0.8.0
   - python==3.7.4
   - pydicom
   - tqdm
