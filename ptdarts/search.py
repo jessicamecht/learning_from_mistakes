@@ -26,7 +26,7 @@ logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)
 config.print_params(logger.info)
 
 def main():
-    torch.autograd.set_detect_anomaly(True)
+    #torch.autograd.set_detect_anomaly(True)
     torch.backends.cudnn.enabled = False
     print("cuda torch version", torch.version.cuda)
     #train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
