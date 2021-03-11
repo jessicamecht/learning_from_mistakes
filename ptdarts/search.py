@@ -189,11 +189,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         w_optim.step()
         #print("Updated W1 weights with training CEL ")
         print(logits.shape, trn_y.shape, 'jhgjhg')
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1,))
+        prec1 = utils.accuracy(logits, trn_y, topk=(1,))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
-        top5.update(prec5.item(), N)
-
+        #top5.update(prec5.item(), N)
+        top5=0
         if step % config.print_freq == 0 or step == len(train_loader) - 1:
             logger.info(
                 "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
@@ -203,7 +203,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
 
         writer.add_scalar('train/loss', loss.item(), cur_step)
         writer.add_scalar('train/top1', prec1.item(), cur_step)
-        writer.add_scalar('train/top5', prec5.item(), cur_step)
+        #writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
 
         #free memory
@@ -230,11 +230,11 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
             logits = model(X)
             loss = model.criterion(logits, y)
 
-            prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
+            prec1 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
             top1.update(prec1.item(), N)
-            top5.update(prec5.item(), N)
-
+            #top5.update(prec5.item(), N)
+            top5 = 0
             if step % config.print_freq == 0 or step == len(valid_loader)-1:
                 logger.info(
                     "Valid: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
@@ -249,7 +249,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
 
     writer.add_scalar('val_search/loss', losses.avg, cur_step)
     writer.add_scalar('val_search/top1', top1.avg, cur_step)
-    writer.add_scalar('val_search/top5', top5.avg, cur_step)
+    #writer.add_scalar('val_search/top5', top5.avg, cur_step)
 
     return top1.avg
 
