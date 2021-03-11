@@ -95,7 +95,7 @@ def accuracy(output, target, topk=(1,)):
     # one-hot case
     if target.ndimension() > 1:
         target = target.max(1)[1]
-    pritn(pred.shape)
+    print(pred.shape)
     correct = pred.eq(target.view(1, -1).expand_as(pred))
 
     res = []
