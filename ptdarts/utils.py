@@ -92,15 +92,15 @@ def accuracy(output, target, topk=(1,)):
 
     _, pred = output.topk(maxk, 1, True, True)
     pred = pred.t()
+    print(pred)
     # one-hot case
     if target.ndimension() > 1:
         target = target.max(1)[1]
-    print(pred.shape)
     correct = pred.eq(target.view(1, -1).expand_as(pred))
 
     res = []
     for k in topk:
-        print(correct.shape, 'correct')
+        print(correct[:k].shape, correct[:k].view(-1).shape, 'correct')
         correct_k = correct[:k].view(-1).float().sum(0)
         res.append(correct_k.mul_(1.0 / batch_size))
 
