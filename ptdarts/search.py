@@ -189,7 +189,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         w_optim.step()
         #print("Updated W1 weights with training CEL ")
         print(logits.shape, trn_y.shape, 'jhgjhg')
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1,))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
