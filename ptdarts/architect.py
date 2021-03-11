@@ -188,9 +188,9 @@ class Architect():
         self.logger.info(f'Weighted training loss in Virtual Step: {loss}')
         # compute gradient wrt weighted loss for network weights
         print(list(self.net.weights()))
-        if not torch.isfinite(self.net.weights()):
-            print(self.net.weights())
-            print(loss)
+        #if not torch.isfinite(self.net.weights()):
+        #    print(self.net.weights())
+        #    print(loss)
         gradients = torch.autograd.grad(loss, self.net.weights())
 
         # do virtual step (update gradient)
