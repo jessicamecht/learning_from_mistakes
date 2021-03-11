@@ -27,7 +27,6 @@ config.print_params(logger.info)
 
 def main():
     torch.autograd.set_detect_anomaly(True)
-    torch.backends.cudnn.enabled = False
     print("cuda torch version", torch.version.cuda)
     #train_data, val_data, test_data = loadCIFARData()# half for training, half for validation
     #train_loader, valid_loader, test_loader = getWeightedDataLoaders(train_data, val_data, test_data, batch_size=config.batch_size, worker=config.workers)
