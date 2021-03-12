@@ -82,19 +82,17 @@ class Architect():
             print('memory_allocated t2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             meta_val_loss = F.cross_entropy(logits, target)
-            params = [coefficient_vector] + list(visual_encoder.parameters())
-            gradients = torch.autograd.grad(meta_val_loss, params, retain_graph=True)
-            coeff_vector_gradients = gradients[:len(coefficient_vector)]
-            visual_encoder_gradients = gradients[len(coefficient_vector):]
+            meta_val_loss1 = F.cross_entropy(logits, target)
+
+            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector)
 
             print('memory_allocated t3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
-            t1visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters(), retain_graph=True) #equivalent to backward for given parameters
-            t = torch.autograd.grad(meta_val_loss, coefficient_vector) #equivalent to backward for given parameters
+            visual_encoder_gradients = torch.autograd.grad(meta_val_loss1, visual_encoder.parameters()) #equivalent to backward for given parameters
             #Update the visual encoder weights
             with torch.no_grad():
-                for p, grad in zip(self.visual_encoder_model.parameters(), t1visual_encoder_gradients):
+                for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                     if p.grad is not None:
                         p.grad += grad.detach()
                     else:
