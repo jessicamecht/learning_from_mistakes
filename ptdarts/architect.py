@@ -63,7 +63,7 @@ class Architect():
 
             logits = fmodel(input)
             meta_val_loss = F.cross_entropy(logits, target)
-            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
+            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters()) #equivalent to backward for given parameters
 
