@@ -67,6 +67,7 @@ class Architect():
 
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             #functional version of model allows gradient propagation through parameters of a model
+            ##heavy mem allocation here
             logits = fmodel(input)
             print('memory_allocated t0', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
@@ -75,13 +76,11 @@ class Architect():
             print('memory_allocated t01', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',torch.cuda.memory_reserved() / 1e9)
 
             weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-            print('memory_allocated t1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
             foptimizer.step(weighted_training_loss) #replaces gradients with respect to model weights
             self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
             print('memory_allocated tt', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
-            ###heavt mem allocation here
+            ###heavy mem allocation here
             logits = fmodel(input)
             print('memory_allocated t2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
@@ -115,6 +114,8 @@ class Architect():
         del fmodel, foptimizer
         gc.collect()
         torch.cuda.empty_cache()
+        print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
@@ -160,12 +161,7 @@ class Architect():
               torch.cuda.memory_reserved() / 1e9)
         weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
                                              self.visual_encoder_model)
-        print('memory_allocated5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
-        print('memory_allocated6', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
-
         # update final alpha gradient with approximation = dalpha - xi*hessian
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
@@ -174,6 +170,8 @@ class Architect():
         del hessian, weights, dw, da, dalpha, v_alphas, v_grads, v_weights, logits, loss, crit, model_backup, w_optim_backup
         gc.collect()
         torch.cuda.empty_cache()
+        print('memory_allocated7', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
