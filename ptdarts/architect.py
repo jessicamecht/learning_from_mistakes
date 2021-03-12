@@ -68,7 +68,6 @@ class Architect():
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             #functional version of model allows gradient propagation through parameters of a model
             logits = fmodel(input)
-            debug_memory()
             print('memory_allocated t0', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             weights = calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
@@ -109,7 +108,6 @@ class Architect():
             del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
             gc.collect()
             torch.cuda.empty_cache()
-            debug_memory()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             #self.coefficient_vector = new_coefficient_vector
