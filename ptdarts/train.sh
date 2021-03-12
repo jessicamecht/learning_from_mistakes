@@ -9,5 +9,5 @@ conda env create -f environment.yaml
 source activate lfm
 nvidia-smi
 nvidia-smi
-python search.py
+python search.py --batch_size 128
 
