@@ -82,7 +82,7 @@ class Architect():
             print('memory_allocated t2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             meta_val_loss = F.cross_entropy(logits, target)
-            gradients = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()), retain_graph=True)
+            gradients = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
             coeff_vector_gradients = gradients[:len(coefficient_vector)]
             visual_encoder_gradients = gradients[len(coefficient_vector):]
 
@@ -97,6 +97,7 @@ class Architect():
                     if p.grad is not None:
                         p.grad += grad.detach()
                     else:
+                        print(p.grad.shape, grad.detach().shape)
                         p.grad = grad.detach()
                 print('memory_allocated t4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                       torch.cuda.memory_reserved() / 1e9)
