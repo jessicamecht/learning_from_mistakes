@@ -30,6 +30,16 @@ class Architect():
         self.eps_lr_vis_encoder = eps_lr_vis_encoder
         self.gamma_lr_coeff_vec = gamma_lr_coeff_vec
 
+    def debug_memory(self):
+        import collections, gc, resource, torch
+        print('maxrss = {}'.format(
+            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+        tensors = collections.Counter((str(o.device), o.dtype, tuple(o.shape))
+                                      for o in gc.get_objects()
+                                      if torch.is_tensor(o))
+        for line in sorted(tensors.items()):
+            print('{}\t{}'.format(*line))
+
     def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
         '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
         able to optimize through the validation loss because pytorch does not allow parameters to have grad_fn's
@@ -56,6 +66,7 @@ class Architect():
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             #functional version of model allows gradient propagation through parameters of a model
             logits = fmodel(input)
+            debug_memory()
             print('memory_allocated t0', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             weights = calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
@@ -96,6 +107,7 @@ class Architect():
             del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
             gc.collect()
             torch.cuda.empty_cache()
+            debug_memory()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             #self.coefficient_vector = new_coefficient_vector
