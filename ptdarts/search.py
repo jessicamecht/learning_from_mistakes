@@ -156,6 +156,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
+
+
     cur_step = epoch*len(train_loader)
     writer.add_scalar('train_search/lr', lr, cur_step)
 
@@ -166,8 +168,15 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 
-        print('memory_allocated1', torch.cuda.memory_allocated() / 1e9, 'memory_cached',
-              torch.cuda.memory_cached() / 1e9)
+        for obj in gc.get_objects():
+            try:
+                if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                    print(type(obj), obj.size())
+            except:
+                pass
+
+        print('memory_allocated1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
@@ -190,7 +199,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
         #print("Updated W1 weights with training CEL ")
-        print(logits.shape, trn_y.shape, 'jhgjhg')
         prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
