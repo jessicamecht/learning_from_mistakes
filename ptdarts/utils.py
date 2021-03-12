@@ -102,6 +102,7 @@ def accuracy(output, target, topk=(1,)):
     for k in topk:
         print(correct[:k], 'correct')
         correct_k = correct[:k].float().sum(0)
+        print(correct_k.shape, 'jkhgkjhgkjhgkhgkjhgjkhgkjhgkjhg')
         res.append(correct_k.mul_(1.0 / batch_size))
 
     return res
