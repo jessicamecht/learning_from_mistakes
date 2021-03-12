@@ -108,9 +108,12 @@ class Architect():
         #backup before doing meta learning cause we only do one step gradient descent and don't want to change the weights just yet
         model_backup = self.net.state_dict()
         w_optim_backup = w_optim.state_dict()
-
+        print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_cached',
+              torch.cuda.memory_cached() / 1e9)
         self.meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
         #return to prev state
+        print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_cached',
+              torch.cuda.memory_cached() / 1e9)
         self.net.load_state_dict(model_backup)
         w_optim.load_state_dict(w_optim_backup)
         # calc unrolled validation loss to update alphas
@@ -130,6 +133,8 @@ class Architect():
         weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
                                              self.visual_encoder_model)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
+        print('memory_allocated4', torch.cuda.memory_allocated() / 1e9, 'memory_cached',
+              torch.cuda.memory_cached() / 1e9)
 
         # update final alpha gradient with approximation = dalpha - xi*hessian
         with torch.no_grad():

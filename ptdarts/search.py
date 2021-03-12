@@ -166,6 +166,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 
+        print('memory_allocated1', torch.cuda.memory_allocated() / 1e9, 'memory_cached',
+              torch.cuda.memory_cached() / 1e9)
+
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
         visual_encoder_optimizer.zero_grad()
