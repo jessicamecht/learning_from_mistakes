@@ -5,6 +5,7 @@ import torch.nn as nn
 import higher
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
+import gc
 
 
 class Architect():
@@ -80,6 +81,9 @@ class Architect():
                         p.grad += grad.detach()
                     else:
                         p.grad = grad.detach()
+            del fmodel, foptimizer
+            gc.collect()
+            torch.cuda.empty_cache()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             #self.coefficient_vector = new_coefficient_vector
