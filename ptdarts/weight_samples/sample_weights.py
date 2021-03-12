@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from weight_samples.visual_similarity import visual_validation_similarity
 from weight_samples.label_similarity import measure_label_similarity
+import gc
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -15,8 +16,11 @@ def calculate_similarities(predictive_performance, visual_similarity_scores, lab
     predictive_performance = predictive_performance.reshape(1, predictive_performance.shape[0])
     repeated_pred_perf = predictive_performance.repeat_interleave(visual_similarity_scores.shape[0], dim=0)
     assert(visual_similarity_scores.shape == label_similarity_scores.shape == repeated_pred_perf.shape)
-
-    return visual_similarity_scores * label_similarity_scores * repeated_pred_perf
+    res = visual_similarity_scores * label_similarity_scores * repeated_pred_perf
+    del visual_similarity_scores, label_similarity_scores, repeated_pred_perf
+    gc.collect()
+    torch.cuda.empty_cache()
+    return res
 
 def sample_weights(predictive_performance, visual_similarity_scores, label_similarity_scores, r):
     '''performs the multiplication with coefficient vector r and squishes everything using sigmoid
@@ -50,4 +54,7 @@ def calc_instance_weights(input_train, target_train, input_val, target_val, mode
     vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
     label_similarity = measure_label_similarity(target_val, target_train)
     weights = sample_weights(predictive_performance, vis_similarity, label_similarity, coefficient)
+    del label_similarity, predictive_performance, vis_similarity, predictive_performance, crit
+    gc.collect()
+    torch.cuda.empty_cache()
     return weights
