@@ -168,6 +168,9 @@ class Architect():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
         #print("Updated alpha gradients")
+        del hessian, weights, dw, da, dalpha, v_alphas, v_grads, v_weights, logits, loss, crit, model_backup, w_optim_backup
+        gc.collect()
+        torch.cuda.empty_cache()
 
 
     def compute_hessian(self, dw, trn_X, trn_y, weights):
