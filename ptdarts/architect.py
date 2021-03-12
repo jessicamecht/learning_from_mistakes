@@ -8,6 +8,17 @@ from weight_samples.sample_weights import calc_instance_weights
 import gc
 
 
+def debug_memory():
+    import collections, gc, resource, torch
+    print('maxrss = {}'.format(
+        resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+    tensors = collections.Counter((str(o.device), o.dtype, tuple(o.shape))
+                                  for o in gc.get_objects()
+                                  if torch.is_tensor(o))
+    for line in sorted(tensors.items()):
+        print('{}\t{}'.format(*line))
+
+
 class Architect():
     """Object to handle the """
     def __init__(self, net, visual_encoder_model, coefficient_vector, w_momentum, w_weight_decay, eps_lr_vis_encoder, gamma_lr_coeff_vec, logger=None):
@@ -30,15 +41,6 @@ class Architect():
         self.eps_lr_vis_encoder = eps_lr_vis_encoder
         self.gamma_lr_coeff_vec = gamma_lr_coeff_vec
 
-    def debug_memory(self):
-        import collections, gc, resource, torch
-        print('maxrss = {}'.format(
-            resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
-        tensors = collections.Counter((str(o.device), o.dtype, tuple(o.shape))
-                                      for o in gc.get_objects()
-                                      if torch.is_tensor(o))
-        for line in sorted(tensors.items()):
-            print('{}\t{}'.format(*line))
 
     def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
         '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
