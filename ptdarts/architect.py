@@ -81,7 +81,7 @@ class Architect():
                         p.grad += grad.detach()
                     else:
                         p.grad = grad.detach()
-            del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits
+            del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
             gc.collect()
             torch.cuda.empty_cache()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
