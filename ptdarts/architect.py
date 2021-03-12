@@ -129,11 +129,14 @@ class Architect():
         v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
-
+        print('memory_allocated4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
         weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
                                              self.visual_encoder_model)
+        print('memory_allocated5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
-        print('memory_allocated4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+        print('memory_allocated6', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
 
         # update final alpha gradient with approximation = dalpha - xi*hessian
