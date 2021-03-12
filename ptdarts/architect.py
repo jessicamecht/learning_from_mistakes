@@ -87,6 +87,7 @@ class Architect():
             print('memory_allocated t3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
+            logits = fmodel(input)
             meta_val_loss1 = F.cross_entropy(logits, target)
 
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss1, visual_encoder.parameters()) #equivalent to backward for given parameters
