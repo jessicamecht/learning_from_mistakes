@@ -82,7 +82,8 @@ class Architect():
             print('memory_allocated t2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             meta_val_loss = F.cross_entropy(logits, target)
-            gradients = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
+            params = [coefficient_vector] + list(visual_encoder.parameters())
+            gradients = torch.autograd.grad(meta_val_loss, params)
             coeff_vector_gradients = gradients[:len(coefficient_vector)]
             visual_encoder_gradients = gradients[len(coefficient_vector):]
 
@@ -97,7 +98,7 @@ class Architect():
                     if p.grad is not None:
                         p.grad += grad.detach()
                     else:
-                        print(p.grad.shape, grad.detach().shape)
+                        print(p.grad, grad.detach().shape)
                         p.grad = grad.detach()
                 print('memory_allocated t4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                       torch.cuda.memory_reserved() / 1e9)
@@ -107,6 +108,8 @@ class Architect():
                         p.grad += grad.detach()
                     else:
                         p.grad = grad.detach()
+            print(params.shape, coefficient_vector.shape)
+
             print('memory_allocated t5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
