@@ -99,23 +99,22 @@ class Architect():
                         p.grad += grad.detach()
                     else:
                         p.grad = grad.detach()
-                print('memory_allocated t4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                      torch.cuda.memory_reserved() / 1e9)
                 #Update the coefficient vector
                 for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
                     if p.grad is not None:
                         p.grad += grad.detach()
                     else:
                         p.grad = grad.detach()
-            print('memory_allocated t5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
-            del fmodel, foptimizer, visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
+            del visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
             gc.collect()
             torch.cuda.empty_cache()
             #new_coefficient_vector = (self.coefficient_vector - self.gamma_lr_coeff_vec* coeff_vector_gradients)
             #self.logger.info(f'New Coefficient vector is different to old coefficient vector: {(self.coefficient_vector != new_coefficient_vector).any()}')
             #self.coefficient_vector = new_coefficient_vector
             #self.logger.info(f'New Visual Encoder Model Weights: {next(self.visual_encoder_model.parameters())}')
+        del fmodel, foptimizer
+        gc.collect()
+        torch.cuda.empty_cache()
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
