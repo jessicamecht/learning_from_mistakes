@@ -70,6 +70,7 @@ class Architect():
             logits = fmodel(input)
             print('memory_allocated t0', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
+            ##heavy mem allocation here
             weights = calc_instance_weights(input, target, input_val, target_val, model, coefficient_vector, visual_encoder)
             print('memory_allocated t01', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',torch.cuda.memory_reserved() / 1e9)
 
@@ -80,6 +81,7 @@ class Architect():
             self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
             print('memory_allocated tt', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
+            ###heavt mem allocation here
             logits = fmodel(input)
             print('memory_allocated t2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
