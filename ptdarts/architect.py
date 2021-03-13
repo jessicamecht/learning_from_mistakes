@@ -90,7 +90,8 @@ class Architect():
             coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters()) #equivalent to backward for given parameters
-
+        print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
         #Update the visual encoder weights
         with torch.no_grad():
             for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
@@ -107,6 +108,8 @@ class Architect():
         del visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
         gc.collect()
         torch.cuda.empty_cache()
+        print('memory_allocatedtend', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
 
         del fmodel, foptimizer
         gc.collect()
