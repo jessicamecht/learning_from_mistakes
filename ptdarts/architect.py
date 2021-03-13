@@ -42,80 +42,20 @@ class Architect():
         self.gamma_lr_coeff_vec = gamma_lr_coeff_vec
 
 
-    def meta_learn(self, model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
-        '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
-        able to optimize through the validation loss because pytorch does not allow parameters to have grad_fn's
-
-        Calculates the weighted training loss and performs a weight update, then calculates the validation loss and makes
-        an update of the weights of the visual encoder and coefficient vector
-
-        V' <- V - eps * d L_{Val}/dV
-        r' <- r - gamma * d L_{Val}/dr
-
-        Args:
-            model: current network architecture model
-            optimizer: weight optimizer for model
-            input: training input of size (number of training images, channels, height, width)
-            target: training target of size (number train examples, 1)
-            input_val: validation input of size (number of validation images, channels, height, width)
-            target_val: validation target of size (number val examples, 1)
-            coefficient_vector: Tensor of size (number train examples, 1)
-            visual_encoder: Visual encoder neural network to calculate instance weights
-            eps: Float learning rate for visual encoder
-            gamma: Float learning rate for coefficient vector
-            '''
-
-        with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
-            #functional version of model allows gradient propagation through parameters of a model
-            ##heavy mem allocation here
-            print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
-            logits = fmodel(input)
-            print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
-            ######
-            ##heavy mem allocation here
-            weights = calc_instance_weights(input, target, input_val, target_val, fmodel, coefficient_vector, visual_encoder)
-            print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
-            ######
-
-            weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-            foptimizer.step(weighted_training_loss) #replaces gradients with respect to model weights
-            self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
-            ###heavy mem allocation here
-            logits = fmodel(input)
-            ####
-            meta_val_loss = F.cross_entropy(logits, target)
-            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
-            coeff_vector_gradients = coeff_vector_gradients[0].detach()
-            visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters()) #equivalent to backward for given parameters
-        print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
-        #Update the visual encoder weights
+    def update_gradients(self, visual_encoder_gradients, coeff_vector_gradients):
+        # Update the visual encoder weights
         with torch.no_grad():
             for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
                 if p.grad is not None:
                     p.grad += grad.detach()
                 else:
                     p.grad = grad.detach()
-            #Update the coefficient vector
+            # Update the coefficient vector
             for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
                 if p.grad is not None:
                     p.grad += grad.detach()
                 else:
                     p.grad = grad.detach()
-        del visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
-        gc.collect()
-        torch.cuda.empty_cache()
-        print('memory_allocatedtend', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
-
-        del fmodel, foptimizer
-        gc.collect()
-        torch.cuda.empty_cache()
-        print('memory_allocatedt5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
@@ -138,7 +78,9 @@ class Architect():
         w_optim_backup = w_optim.state_dict()
         print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        self.meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+        visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+
+        self.update_gradients(visual_encoder_gradients, coeff_vector_gradients)
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
@@ -257,3 +199,57 @@ class Architect():
         logger.info(next(self.visual_encoder_model.parameters()))
         logger.info("#####################")
 
+def meta_learn(model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
+    '''Method to meta learn the visual encoder weights and coefficient vector r, we use the higher library to be
+     able to optimize through the validation loss because pytorch does not allow parameters to have grad_fn's
+
+    Calculates the weighted training loss and performs a weight update, then calculates the validation loss and makes
+    an update of the weights of the visual encoder and coefficient vector
+
+    V' <- V - eps * d L_{Val}/dV
+    r' <- r - gamma * d L_{Val}/dr
+
+    Args:
+        model: current network architecture model
+        optimizer: weight optimizer for model
+        input: training input of size (number of training images, channels, height, width)
+        target: training target of size (number train examples, 1)
+        input_val: validation input of size (number of validation images, channels, height, width)
+        target_val: validation target of size (number val examples, 1)
+        coefficient_vector: Tensor of size (number train examples, 1)
+        visual_encoder: Visual encoder neural network to calculate instance weights
+        eps: Float learning rate for visual encoder
+        gamma: Float learning rate for coefficient vector
+        '''
+
+    with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
+        # functional version of model allows gradient propagation through parameters of a model
+        ##heavy mem allocation here
+        print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+                  torch.cuda.memory_reserved() / 1e9)
+        logits = fmodel(input)
+        print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+                  torch.cuda.memory_reserved() / 1e9)
+        ######
+        ##heavy mem allocation here
+        weights = calc_instance_weights(input, target, input_val, target_val, fmodel, coefficient_vector,
+                                            visual_encoder)
+        print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+                  torch.cuda.memory_reserved() / 1e9)
+        ######
+
+        weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
+        foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
+        self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
+        ###heavy mem allocation here
+        logits = fmodel(input)
+        ####
+        meta_val_loss = F.cross_entropy(logits, target)
+        coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
+        coeff_vector_gradients = coeff_vector_gradients[0].detach()
+        visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
+                                                           visual_encoder.parameters())  # equivalent to backward for given parameters
+    print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
+
+    return visual_encoder_gradients, coeff_vector_gradients
