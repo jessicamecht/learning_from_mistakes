@@ -75,8 +75,6 @@ class Architect():
                   torch.cuda.memory_reserved() / 1e9)
             ######
             ##heavy mem allocation here
-            print('memory_allocatedt3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
             weights = calc_instance_weights(input, target, input_val, target_val, fmodel, coefficient_vector, visual_encoder)
             print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
@@ -93,26 +91,27 @@ class Architect():
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters()) #equivalent to backward for given parameters
 
-            #Update the visual encoder weights
-            with torch.no_grad():
-                for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
-                    if p.grad is not None:
-                        p.grad += grad.detach()
-                    else:
-                        p.grad = grad.detach()
-                #Update the coefficient vector
-                for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
-                    if p.grad is not None:
-                        p.grad += grad.detach()
-                    else:
-                        p.grad = grad.detach()
-            del visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
-            gc.collect()
-            torch.cuda.empty_cache()
+        #Update the visual encoder weights
+        with torch.no_grad():
+            for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
+                if p.grad is not None:
+                    p.grad += grad.detach()
+                else:
+                    p.grad = grad.detach()
+            #Update the coefficient vector
+            for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
+                if p.grad is not None:
+                    p.grad += grad.detach()
+                else:
+                    p.grad = grad.detach()
+        del visual_encoder_gradients, weighted_training_loss, weights, logits, meta_val_loss, coeff_vector_gradients
+        gc.collect()
+        torch.cuda.empty_cache()
+
         del fmodel, foptimizer
         gc.collect()
         torch.cuda.empty_cache()
-        print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+        print('memory_allocatedt5', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
 
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
