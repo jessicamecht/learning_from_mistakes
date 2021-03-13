@@ -240,7 +240,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
 
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
-        self.logger.info(f'Weighted training loss to update r and V: {weighted_training_loss}')
         ###heavy mem allocation here
         logits = fmodel(input)
         ####
