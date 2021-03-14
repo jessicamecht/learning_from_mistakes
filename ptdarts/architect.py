@@ -225,7 +225,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)'''
 
 
-        del logits, meta_val_loss, foptimizer, fmodel, weights, weighted_training_loss
+        del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
