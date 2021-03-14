@@ -6,7 +6,7 @@ import higher
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import gc
-
+import collections, gc, resource, torch
 
 def debug_memory():
     import collections, gc, resource, torch
@@ -210,7 +210,9 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         ##heavy mem allocation here
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
+        debug_memory()
         logits = fmodel(input)
+        debug_memory()
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         ######
@@ -220,11 +222,13 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         ######
+        debug_memory()
 
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
         ###heavy mem allocation here
         logits = fmodel(input)
+        debug_memory()
         ####
         meta_val_loss = F.cross_entropy(logits, target)
         coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
@@ -246,7 +250,9 @@ def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_en
     with torch.no_grad():
         for p, grad in zip(visual_encoder.parameters(), visual_encoder_gradients):
             if p.grad is not None:
-                p.grad += grad.detach()
+                new_grad = grad.detach()
+                print(new_grad)
+                p.grad += new_grad
             else:
                 p.grad = grad.detach()
         # Update the coefficient vector
@@ -255,3 +261,13 @@ def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_en
                 p.grad += grad.detach()
             else:
                 p.grad = grad.detach()
+
+def debug_memory():
+
+    print('maxrss = {}'.format(
+        resource.getrusage(resource.RUSAGE_SELF).ru_maxrss))
+    tensors = collections.Counter((str(o.device), o.dtype, tuple(o.shape))
+                                  for o in gc.get_objects()
+                                  if torch.is_tensor(o))
+    for line in tensors.items():
+        print('{}\t{}'.format(*line))
