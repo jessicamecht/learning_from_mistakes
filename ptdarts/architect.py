@@ -7,7 +7,6 @@ import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import gc
 import collections, gc, resource, torch
-from pytorch_memlab import LineProfiler
 
 class Architect():
     """Object to handle the """
