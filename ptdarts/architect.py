@@ -216,7 +216,8 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         logits = fmodel(input)
         ####
         meta_val_loss = F.cross_entropy(logits, target)
-        coeff_vector_gradients, visual_encoder_gradients = torch.autograd.grad(meta_val_loss, [coefficient_vector]+ list(visual_encoder.parameters()))
+        grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
+        coeff_vector_gradients, visual_encoder_gradients = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
         #visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
