@@ -227,16 +227,13 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         ##heavy mem allocation here
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
-        check_tensors()
         logits = fmodel(input)
-        check_tensors()
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         ######
         ##heavy mem allocation here
         weights = calc_instance_weights(input, target, input_val, target_val, fmodel, coefficient_vector,
                                             visual_encoder)
-        check_tensors()
         print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         ######
@@ -260,11 +257,3 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
     print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
     return visual_encoder_gradients, coeff_vector_gradients
-
-def check_tensors():
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                print(type(obj), obj.size())
-        except:
-            pass
