@@ -7,6 +7,8 @@ import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import gc
 import collections, gc, resource, torch
+from pytorch_memlab import LineProfiler
+
 
 def debug_memory():
     import collections, gc, resource, torch
@@ -63,7 +65,9 @@ class Architect():
         w_optim_backup = w_optim.state_dict()
         print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+        with LineProfiler(outer, inner) as prof:
+            meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+        prof.display()
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
@@ -74,7 +78,7 @@ class Architect():
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(A,W2∗(W1∗(A),V,r),D(val))
-        self.logger.info(f'Validation Loss to update Alpha: {loss.item()}')
+        self.logger.info(f'Validation Loss to update Alpha: {loss.detach()}')
 
         # compute gradients of alpha
         v_alphas = tuple(self.v_net.alphas())
