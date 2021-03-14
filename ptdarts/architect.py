@@ -78,9 +78,9 @@ class Architect():
         w_optim_backup = w_optim.state_dict()
         print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+        #visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
 
-        self.update_gradients(visual_encoder_gradients, coeff_vector_gradients)
+        #self.update_gradients(visual_encoder_gradients, coeff_vector_gradients)
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
