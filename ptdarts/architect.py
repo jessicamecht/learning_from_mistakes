@@ -224,7 +224,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
 
         grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
         coeff_vector_gradients_test, visual_encoder_gradients_test = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
-        print(coeff_vector_gradients_test.shape, coeff_vector_gradients.shape)
+        print(coeff_vector_gradients_test[0].shape, coeff_vector_gradients[0].shape)
         print(visual_encoder_gradients_test[0].shape, visual_encoder_gradients[0].shape)
         print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)
 
