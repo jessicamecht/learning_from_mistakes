@@ -42,21 +42,6 @@ class Architect():
         self.gamma_lr_coeff_vec = gamma_lr_coeff_vec
 
 
-    def update_gradients(self, visual_encoder_gradients, coeff_vector_gradients):
-        # Update the visual encoder weights
-        with torch.no_grad():
-            for p, grad in zip(self.visual_encoder_model.parameters(), visual_encoder_gradients):
-                if p.grad is not None:
-                    p.grad += grad.detach()
-                else:
-                    p.grad = grad.detach()
-            # Update the coefficient vector
-            for p, grad in zip(self.coefficient_vector, coeff_vector_gradients):
-                if p.grad is not None:
-                    p.grad += grad.detach()
-                else:
-                    p.grad = grad.detach()
-
     def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
 
         """ Compute unrolled loss for the alphas and backward its gradients
@@ -78,9 +63,7 @@ class Architect():
         w_optim_backup = w_optim.state_dict()
         print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        #visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
-
-        #self.update_gradients(visual_encoder_gradients, coeff_vector_gradients)
+        visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
@@ -256,4 +239,19 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
-        return visual_encoder_gradients, coeff_vector_gradients
+        update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector)
+
+def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
+    # Update the visual encoder weights
+    with torch.no_grad():
+        for p, grad in zip(visual_encoder.parameters(), visual_encoder_gradients):
+            if p.grad is not None:
+                p.grad += grad.detach()
+            else:
+                p.grad = grad.detach()
+        # Update the coefficient vector
+        for p, grad in zip(coefficient_vector, coeff_vector_gradients):
+            if p.grad is not None:
+                p.grad += grad.detach()
+            else:
+                p.grad = grad.detach()
