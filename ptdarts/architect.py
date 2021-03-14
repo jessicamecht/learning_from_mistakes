@@ -91,7 +91,7 @@ class Architect():
         crit = nn.CrossEntropyLoss()
         logits = self.v_net(val_X)
         loss = crit(logits, val_y) # L_val(A,W2∗(W1∗(A),V,r),D(val))
-        self.logger.info(f'Validation Loss to update Alpha: {loss}')
+        self.logger.info(f'Validation Loss to update Alpha: {loss.item()}')
 
         # compute gradients of alpha
         v_alphas = tuple(self.v_net.alphas())
@@ -252,13 +252,13 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
                                                            visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
-    print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-              torch.cuda.memory_reserved() / 1e9)
+
 
     del logits, meta_val_loss, foptimizer, fmodel, weights, weighted_training_loss
     gc.collect()
     torch.cuda.empty_cache()
-
+    print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+          torch.cuda.memory_reserved() / 1e9)
     return visual_encoder_gradients, coeff_vector_gradients
 
 def check_tensors():
