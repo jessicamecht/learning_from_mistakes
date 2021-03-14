@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import gc
 import collections, gc, resource, torch
+from pytorch_memlab import LineProfiler
 
 class Architect():
     """Object to handle the """
@@ -216,11 +217,17 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         logits = fmodel(input)
         ####
         meta_val_loss = F.cross_entropy(logits, target)
-        grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
-        coeff_vector_gradients, visual_encoder_gradients = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
+        coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
-        #visual_encoder_gradients = torch.autograd.grad(meta_val_loss, visual_encoder.parameters())
+        visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
+                                                           visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
+
+        grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
+        coeff_vector_gradients_test, visual_encoder_gradients_test = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
+        print(coeff_vector_gradients_test.shape, coeff_vector_gradients.shape)
+        print(visual_encoder_gradients_test[0].shape, visual_encoder_gradients[0].shape)
+        print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)
 
 
         del logits, meta_val_loss, foptimizer, fmodel, weights, weighted_training_loss
