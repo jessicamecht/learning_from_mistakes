@@ -238,7 +238,7 @@ def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_en
         for p, grad in zip(visual_encoder.parameters(), visual_encoder_gradients):
             if p.grad is not None:
                 new_grad = grad.detach()
-                print(new_grad)
+                #print(new_grad)
                 p.grad += new_grad
             else:
                 p.grad = grad.detach()
