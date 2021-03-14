@@ -247,8 +247,12 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
         visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
-                                                           visual_encoder.parameters())  # equivalent to backward for given parameters
+                                                           visual_encoder.parameters()).detach()  # equivalent to backward for given parameters
     print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
+
+    del logits, meta_val_loss, foptimizer, fmodel, weights, weighted_training_loss
+    gc.collect()
+    torch.cuda.empty_cache()
 
     return visual_encoder_gradients, coeff_vector_gradients
