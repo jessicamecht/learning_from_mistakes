@@ -33,7 +33,7 @@ def sample_weights(predictive_performance, visual_similarity_scores, label_simil
     assert(a.shape[0]== visual_similarity_scores.shape[0])
     return a
 
-def calc_instance_weights(input_train, target_train, input_val, target_val, model, coefficient, visual_encoder):
+def calc_instance_weights(input_train, target_train, input_val, target_val, val_logits, coefficient, visual_encoder):
     '''calculates the weights for each training instance with respect to the validation instances to be used for weighted
     training loss
     Args:
@@ -44,8 +44,6 @@ def calc_instance_weights(input_train, target_train, input_val, target_val, mode
         model: current architecture model to calculate predictive performance (forward pass)
         coefficient: current coefficient vector of size (number train examples, 1)
         '''
-
-    val_logits = model(input_val)
     crit = nn.CrossEntropyLoss(reduction='none')
     predictive_performance = crit(val_logits, target_val)
     vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)

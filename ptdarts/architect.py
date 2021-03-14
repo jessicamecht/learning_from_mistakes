@@ -45,7 +45,8 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         #calc weights for weighted training loss in virtual step
-        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.net, self.coefficient_vector, self.visual_encoder_model)
+        val_logits = self.net(val_X)
+        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, val_logits, self.coefficient_vector, self.visual_encoder_model)
         #self.logger.info(f'Training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup before doing meta learning cause we only do one step gradient descent and don't want to change the weights just yet
@@ -76,7 +77,7 @@ class Architect():
         dw = v_grads[len(v_alphas):]
         print('memory_allocated4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, self.v_net, self.coefficient_vector,
+        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, logits, self.coefficient_vector,
                                              self.visual_encoder_model)
         hessian = self.compute_hessian(dw, trn_X, trn_y, weights)
         # update final alpha gradient with approximation = dalpha - xi*hessian
@@ -207,7 +208,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
                   torch.cuda.memory_reserved() / 1e9)
         ######
         ##heavy mem allocation here
-        weights = calc_instance_weights(input, target, input_val, target_val, fmodel, coefficient_vector,
+        weights = calc_instance_weights(input, target, input_val, target_val, logits, coefficient_vector,
                                             visual_encoder)
         print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
