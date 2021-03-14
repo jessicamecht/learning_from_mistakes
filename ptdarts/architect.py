@@ -202,31 +202,25 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         logits = fmodel(input)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
-        ######
-        ##heavy mem allocation here
         weights = calc_instance_weights(input, target, input_val, target_val, logits, coefficient_vector,
                                             visual_encoder)
-        print('memory_allocatedt4', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
-                  torch.cuda.memory_reserved() / 1e9)
-        ######
-
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
-        ###heavy mem allocation here
+        del logits
+        gc.collect()
         logits = fmodel(input)
-        ####
         meta_val_loss = F.cross_entropy(logits, target)
         coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
         visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
-                                                           visual_encoder.parameters(), retain_graph=True)
+                                                           visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
-
+        '''
         grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
         coeff_vector_gradients_test, visual_encoder_gradients_test = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
         print(coeff_vector_gradients_test[0].shape, coeff_vector_gradients[0].shape)
         print(visual_encoder_gradients_test[0].shape, visual_encoder_gradients[0].shape)
-        print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)
+        print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)'''
 
 
         del logits, meta_val_loss, foptimizer, fmodel, weights, weighted_training_loss
