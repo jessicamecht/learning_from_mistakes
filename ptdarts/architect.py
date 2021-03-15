@@ -52,7 +52,11 @@ class Architect():
         w_optim_backup = w_optim.state_dict()
         print('memory_allocated2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, self.coefficient_vector, self.visual_encoder_model)
+
+        new_coeff = copy.deepcopy(self.coefficient_vector)
+        new_vis = copy.deepcopy(self.visual_encoder_model)
+        visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, new_coeff, new_vis)
+        update_gradients(visual_encoder_gradients, coeff_vector_gradients)
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
@@ -202,6 +206,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         logits = fmodel(input)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
+
         weights = calc_instance_weights(input, target, input_val, target_val, logits, coefficient_vector,
                                             visual_encoder)
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
@@ -230,7 +235,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
-        update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector)
+        return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
     # Update the visual encoder weights
