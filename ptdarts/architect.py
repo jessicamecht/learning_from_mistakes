@@ -56,7 +56,11 @@ class Architect():
         new_coeff = copy.deepcopy(self.coefficient_vector)
         new_vis = copy.deepcopy(self.visual_encoder_model)
         visual_encoder_gradients, coeff_vector_gradients = meta_learn(self.net, w_optim, trn_X, trn_y, val_X, val_y, new_coeff, new_vis)
-        update_gradients(visual_encoder_gradients, coeff_vector_gradients)
+        update_gradients(visual_encoder_gradients, coeff_vector_gradients, self.visual_encoder_model, self.coefficient_vector)
+        del new_coeff, new_vis
+        gc.collect()
+        torch.cuda.empty_cache()
+
         #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
