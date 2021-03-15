@@ -204,6 +204,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         gamma: Float learning rate for coefficient vector
         '''
 
+    print(mode.parameters())
     with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
         # functional version of model allows gradient propagation through parameters of a model
         ##heavy mem allocation here
