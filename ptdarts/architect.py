@@ -55,7 +55,7 @@ class Architect():
 
         new_coeff = copy.deepcopy(self.coefficient_vector)
         new_vis = copy.deepcopy(self.visual_encoder_model)
-        net_copy = copy.deepcopy(self.net.net)
+        net_copy = copy.deepcopy(self.net)
         w_optim_copy = torch.optim.SGD(net_copy.parameters(), 0.01)
         visual_encoder_gradients, coeff_vector_gradients = meta_learn(net_copy, w_optim_copy, trn_X, trn_y, val_X, val_y, new_coeff, new_vis)
         update_gradients(visual_encoder_gradients, coeff_vector_gradients, self.visual_encoder_model, self.coefficient_vector)
