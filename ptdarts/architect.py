@@ -206,7 +206,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         gamma: Float learning rate for coefficient vector
         '''
 
-    with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
+    with higher.innerloop_ctx(model, optimizer, track_higher_grads=False) as (fmodel, foptimizer):
         # functional version of model allows gradient propagation through parameters of a model
         ##heavy mem allocation here
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -230,13 +230,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
                                                            visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
-        '''
-        grads = torch.autograd.grad(meta_val_loss, [coefficient_vector] + list(visual_encoder.parameters()))
-        coeff_vector_gradients_test, visual_encoder_gradients_test = grads[:len(coefficient_vector)], grads[len(coefficient_vector):]
-        print(coeff_vector_gradients_test[0].shape, coeff_vector_gradients[0].shape)
-        print(visual_encoder_gradients_test[0].shape, visual_encoder_gradients[0].shape)
-        print(visual_encoder_gradients_test[1].shape, visual_encoder_gradients[1].shape)'''
-
 
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
@@ -251,9 +244,7 @@ def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_en
     with torch.no_grad():
         for p, grad in zip(visual_encoder.parameters(), visual_encoder_gradients):
             if p.grad is not None:
-                new_grad = grad.detach()
-                #print(new_grad)
-                p.grad.data += new_grad
+                p.grad.data += grad.detach()
             else:
                 p.grad = grad.detach()
         # Update the coefficient vector
