@@ -218,7 +218,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         weights = calc_instance_weights(input, target, input_val, target_val, logits, coefficient_vector,
                                             visual_encoder)
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-        foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
+        w = foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
         del logits, weights
         gc.collect()
@@ -243,6 +243,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
+        print(visual_encoder_gradients)
         return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
