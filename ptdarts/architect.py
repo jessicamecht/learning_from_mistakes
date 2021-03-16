@@ -218,9 +218,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss, fmodel.named_parameters())  # replaces gradients with respect to model weights -> w2
         #test = torch.autograd.grad(weighted_training_loss, fmodel.parameters())
-        for name, param in fmodel.named_parameters():
-            if param.requires_grad:
-                print(name, param.grad)
 
         logits = fmodel(input)
         meta_val_loss = F.cross_entropy(logits, target)
