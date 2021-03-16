@@ -215,7 +215,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
 
-        #logits = fmodel(input)
+        logits = fmodel(input)
         meta_val_loss = F.cross_entropy(logits, target)
         coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
