@@ -206,7 +206,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         gamma: Float learning rate for coefficient vector
         '''
 
-    with higher.innerloop_ctx(model, optimizer, track_higher_grads=False) as (fmodel, foptimizer):
+    with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
         # functional version of model allows gradient propagation through parameters of a model
         ##heavy mem allocation here
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -218,12 +218,12 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         weights = calc_instance_weights(input, target, input_val, target_val, logits, coefficient_vector,
                                             visual_encoder)
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
-        w = foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
+        foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
         del logits, weights
         gc.collect()
 
-        logits = fmodel(input)
+        #logits = fmodel(input)
         meta_val_loss = F.cross_entropy(logits, target)
         coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
