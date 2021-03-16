@@ -210,7 +210,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
                   torch.cuda.memory_reserved() / 1e9)
         logits = fmodel(input)
         for name, param in fmodel.named_parameters():
-            if param.grad is not None:
+            if param.requires_grad:
                 print(name, param.grad)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
@@ -219,11 +219,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
                                             visual_encoder)
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
-
-        print('kjhgkjhgjk')
-        for name, param in fmodel.named_parameters():
-            if param.grad is not None:
-                print(name)
 
 
         logits = fmodel(input)
