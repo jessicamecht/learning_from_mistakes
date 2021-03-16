@@ -52,7 +52,7 @@ def main():
     train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     train_loader = torch.utils.data.DataLoader(train_data, config.batch_size, shuffle=True, num_workers=config.workers,
                                                pin_memory=True, drop_last=True)
-    valid_loader = torch.utils.data.DataLoader(val_data, config.batch_size, num_workers=config.workers, pin_memory=True, drop_last=True)
+    valid_loader = torch.utils.data.DataLoader(val_data, config.batch_size * 5, num_workers=config.workers, pin_memory=True, drop_last=True)
     test_loader = torch.utils.data.DataLoader(test_data, len(test_data), num_workers=config.workers, pin_memory=True,
                                               drop_last=True)
     logger.info("Logger is set - training start")
@@ -230,6 +230,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
 
     with torch.no_grad():
         for step, (X, y) in enumerate(valid_loader):
+            if step > 20
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             N = X.size(0)
 
