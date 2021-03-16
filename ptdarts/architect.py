@@ -211,7 +211,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         logits = fmodel(input)
         for name, param in fmodel.named_parameters():
             if param.grad is not None:
-                print(name)
+                print(name, param.grad)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
 
