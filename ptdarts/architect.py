@@ -57,20 +57,21 @@ class Architect():
         new_vis = copy.deepcopy(self.visual_encoder_model)
         net_copy = copy.deepcopy(self.net)
         w_optim_copy = torch.optim.SGD(net_copy.parameters(), 0.01)
-        for name, param in net_copy.named_parameters():
-            if param.requires_grad:
-                print(name)
         trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = copy.deepcopy(trn_X), copy.deepcopy(trn_y), copy.deepcopy(val_X), copy.deepcopy(val_y)
 
+        print('memory_allocatedtest', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+              torch.cuda.memory_reserved() / 1e9)
         visual_encoder_gradients, coeff_vector_gradients = meta_learn(net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy, new_coeff, new_vis)
         update_gradients(visual_encoder_gradients, coeff_vector_gradients, self.visual_encoder_model, self.coefficient_vector)
+
+
         del new_coeff, new_vis, net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy
         gc.collect()
         torch.cuda.empty_cache()
-
-        #return to prev state
         print('memory_allocated3', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
+
+        #return to prev state
         self.net.load_state_dict(model_backup)
         w_optim.load_state_dict(w_optim_backup)
         # calc unrolled validation loss to update alphas
