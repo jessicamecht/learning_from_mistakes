@@ -60,6 +60,10 @@ class Architect():
         for name, param in net_copy.named_parameters():
             if param.requires_grad:
                 print(name)
+        print('kjhgjkhg')
+        for name, param in self.net.net.named_parameters():
+            if param.requires_grad:
+                print(name)
         trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = copy.deepcopy(trn_X), copy.deepcopy(trn_y), copy.deepcopy(val_X), copy.deepcopy(val_y)
 
         visual_encoder_gradients, coeff_vector_gradients = meta_learn(net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy, new_coeff, new_vis)
@@ -209,9 +213,9 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         logits = fmodel(input)
-        for name, param in fmodel.named_parameters():
-            if param.requires_grad:
-                print(name)
+        #for name, param in fmodel.named_parameters():
+        #    if param.requires_grad:
+        #        print(name)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
 
