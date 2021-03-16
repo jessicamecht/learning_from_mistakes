@@ -234,7 +234,8 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
             N = X.size(0)
 
             logits = model(X)
-            loss = model.criterion(logits, y)
+            crit = nn.CrossEntropyLoss()
+            loss = crit(logits, y)#model.criterion(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
