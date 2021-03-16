@@ -45,7 +45,7 @@ def calc_instance_weights(input_train, target_train, input_val, target_val, val_
         coefficient: current coefficient vector of size (number train examples, 1)
         '''
     crit = nn.CrossEntropyLoss(reduction='none')
-    preds = val_logits.max(1)
+    preds = torch.max(val_logits,1)
     print(preds.shape)
     predictive_performance = crit(preds, target_val)
     vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
