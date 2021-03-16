@@ -164,7 +164,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
     model.train()
 
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-        if step > 3:
+        if step > 0:
             break
         print(step, 'step')
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
