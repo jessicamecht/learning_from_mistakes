@@ -57,6 +57,7 @@ class Architect():
         new_vis = copy.deepcopy(self.visual_encoder_model)
         net_copy = copy.deepcopy(self.net)
         w_optim_copy = torch.optim.SGD(net_copy.parameters(), 0.01)
+        print('net_copy.parameters()', net_copy.parameters())
         trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = copy.deepcopy(trn_X), copy.deepcopy(trn_y), copy.deepcopy(val_X), copy.deepcopy(val_y)
 
         visual_encoder_gradients, coeff_vector_gradients = meta_learn(net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy, new_coeff, new_vis)
@@ -217,12 +218,9 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
 
         logits = fmodel(input)
         meta_val_loss = F.cross_entropy(logits, target)
-        coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector)
+        coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
         coeff_vector_gradients = coeff_vector_gradients[0].detach()
-
-        logits_2 = fmodel(input)
-        meta_val_loss_2 = F.cross_entropy(logits_2, target)
-        visual_encoder_gradients = torch.autograd.grad(meta_val_loss_2,
+        visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
                                                            visual_encoder.parameters())
         visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
 
@@ -231,6 +229,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
+        print(visual_encoder_gradients)
         return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
