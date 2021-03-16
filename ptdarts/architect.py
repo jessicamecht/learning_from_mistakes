@@ -209,6 +209,9 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
         logits = fmodel(input)
+        for name, param in fmodel.named_parameters():
+            if param.requires_grad:
+                print(name)
         print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
 
@@ -231,7 +234,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         torch.cuda.empty_cache()
         print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
-        print(visual_encoder_gradients)
         return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
