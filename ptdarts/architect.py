@@ -204,7 +204,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         gamma: Float learning rate for coefficient vector
         '''
 
-    with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
+    with higher.innerloop_ctx(model, optimizer, track_higher_grads=False) as (fmodel, foptimizer):
         # functional version of model allows gradient propagation through parameters of a model
         ##heavy mem allocation here
         print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
