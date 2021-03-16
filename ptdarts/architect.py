@@ -152,12 +152,6 @@ class Architect():
         #forward and calc weighted loss on training
         loss = self.net.loss(trn_X, trn_y, weights) # L_trn(w)
         self.logger.info(f'Weighted training loss in Virtual Step: {loss}')
-        # compute gradient wrt weighted loss for network weights
-        #print(list(self.net.weights()))
-        #print(loss, 'lossval')
-        #if not torch.isfinite(self.net.weights()):
-        #    print(self.net.weights())
-        #    print(loss)
         gradients = torch.autograd.grad(loss, self.net.weights())
 
         # do virtual step (update gradient)
@@ -220,8 +214,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
         foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
-        del logits, weights
-        gc.collect()
 
         #logits = fmodel(input)
         meta_val_loss = F.cross_entropy(logits, target)
