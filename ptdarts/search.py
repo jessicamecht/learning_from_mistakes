@@ -230,7 +230,8 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
 
     with torch.no_grad():
         for step, (X, y) in enumerate(valid_loader):
-            if step > 20
+            if step > 20:
+                break
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
             N = X.size(0)
 
