@@ -204,6 +204,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         eps: Float learning rate for visual encoder
         gamma: Float learning rate for coefficient vector
         '''
+    logits_val = model(input_val)
     with torch.backends.cudnn.flags(enabled=False):
         with higher.innerloop_ctx(model, optimizer) as (fmodel, foptimizer):
             # functional version of model allows gradient propagation through parameters of a model
@@ -213,7 +214,6 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
             logits = fmodel(input)
             print('memory_allocatedt11', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
-            logits_val = model(input_val)
             print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
 
