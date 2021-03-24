@@ -135,7 +135,6 @@ def main():
             best_top1 = top1
             best_genotype = genotype
             genotype_txt = open("genotype.txt", "w")
-            n = genotype_txt.write(best_genotype)
             genotype_txt.close()
 
             is_best = True
