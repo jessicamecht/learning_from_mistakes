@@ -62,7 +62,8 @@ class Architect():
 
         print('memory_allocatedtest', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-        visual_encoder_gradients, coeff_vector_gradients = meta_learn(net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy, new_coeff, new_vis)
+        #visual_encoder_gradients, coeff_vector_gradients =
+        meta_learn(net_copy, w_optim_copy, trn_X_copy, trn_y_copy, val_X_copy, val_y_copy, new_coeff, new_vis)
         #update_gradients(visual_encoder_gradients, coeff_vector_gradients, self.visual_encoder_model, self.coefficient_vector)
 
 
@@ -225,18 +226,17 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
             logits = fmodel(input_val)
             meta_val_loss = F.cross_entropy(logits, target_val)
             meta_val_loss.backward()
-            coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
-            coeff_vector_gradients = coeff_vector_gradients[0].detach()
-            visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
-                                                               visual_encoder.parameters())
-            visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
+            #coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
+            #coeff_vector_gradients = coeff_vector_gradients[0].detach()
+            #visual_encoder_gradients = torch.autograd.grad(meta_val_loss,  visual_encoder.parameters())
+            #visual_encoder_gradients = (visual_encoder_gradients[0].detach(), visual_encoder_gradients[1].detach())# equivalent to backward for given parameters
 
             print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
-        return visual_encoder_gradients, coeff_vector_gradients
+        #return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
     # Update the visual encoder weights
