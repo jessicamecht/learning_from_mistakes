@@ -2,6 +2,7 @@
 import copy
 import torch
 import torch.nn as nn
+import higher
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import collections, gc, resource, torch
