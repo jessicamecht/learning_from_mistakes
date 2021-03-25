@@ -45,8 +45,7 @@ class Architect():
         #calc weights for weighted training loss in virtual step
         with torch.no_grad():
             val_logits = self.net(val_X)
-
-        weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, val_logits, self.coefficient_vector, self.visual_encoder_model)
+            weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, val_logits, self.coefficient_vector, self.visual_encoder_model)
         #self.logger.info(f'Training instance weights: {weights}')
         self.virtual_step(trn_X, trn_y, xi, w_optim, weights)
         #backup before doing meta learning cause we only do one step gradient descent and don't want to change the weights just yet
