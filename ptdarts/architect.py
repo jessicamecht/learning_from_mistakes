@@ -43,7 +43,7 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         #calc weights for weighted training loss in virtual step
-        with torch.no_grad:
+        with torch.no_grad():
             val_logits = self.net(val_X)
 
         weights = calc_instance_weights(trn_X, trn_y, val_X, val_y, val_logits, self.coefficient_vector, self.visual_encoder_model)
