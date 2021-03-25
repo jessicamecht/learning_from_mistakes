@@ -57,7 +57,7 @@ class Architect():
         new_coeff = self.coefficient_vector #copy.deepcopy(self.coefficient_vector)
         new_vis = self.visual_encoder_model# copy.deepcopy(self.visual_encoder_model)
         net_copy = self.net#copy.deepcopy(self.net)
-        w_optim_copy = w_optim#torch.optim.SGD(net_copy.parameters(), 0.01)
+        w_optim_copy = torch.optim.SGD(net_copy.parameters(), 0.01)
         #trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = copy.deepcopy(trn_X), copy.deepcopy(trn_y), copy.deepcopy(val_X), copy.deepcopy(val_y)
         trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = trn_X, trn_y, val_X, val_y
         print('memory_allocatedtest', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -235,7 +235,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
-        return visual_encoder_gradients, coeff_vector_gradients
+    return visual_encoder_gradients, coeff_vector_gradients
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
     # Update the visual encoder weights
