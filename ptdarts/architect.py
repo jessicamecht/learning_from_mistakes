@@ -218,7 +218,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
             print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
 
-
+            print(input.requires_grad, target.requires_grad, target_val.requires_grad, input_val.requires_grad)
             weights = calc_instance_weights(input, target, input_val, target_val, logits_val, coefficient_vector, visual_encoder)
             weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(weighted_training_loss, fmodel.parameters())  # replaces gradients with respect to model weights -> w2
