@@ -46,7 +46,6 @@ def calc_instance_weights(input_train, target_train, input_val, target_val, val_
         '''
     crit = nn.CrossEntropyLoss(reduction='none')
     #preds, _ = torch.max(val_logits,1)
-    print(val_logits.shape, target_val.shape)
     predictive_performance = crit(val_logits, target_val)
     vis_similarity = visual_validation_similarity(visual_encoder, input_val, input_train)
     label_similarity = measure_label_similarity(target_val, target_train)
