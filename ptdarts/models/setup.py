@@ -30,7 +30,7 @@ DESC = ('A pytorch library allowing users to obtain higher order gradients '
         'steps.')
 
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = ''
+VERSION = '0.2.1'
 
 # run setup
 setup(
