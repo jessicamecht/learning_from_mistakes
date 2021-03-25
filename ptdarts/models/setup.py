@@ -20,7 +20,7 @@ from setuptools import setup
 # current directory
 HERE = pathlib.Path(__file__).parent
 
-README = (HERE / "README.md").read_text()
+README = ""
 README = README.replace(
     "](./",
     "](https://github.com/facebookresearch/higher/blob/master/"
@@ -30,7 +30,7 @@ DESC = ('A pytorch library allowing users to obtain higher order gradients '
         'steps.')
 
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = (HERE / "version.txt").read_text().strip()
+VERSION = ''
 
 # run setup
 setup(
