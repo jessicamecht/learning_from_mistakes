@@ -208,7 +208,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
     with torch.no_grad():
         logits_val = model(input_val)
     with torch.backends.cudnn.flags(enabled=False):
-        with higher.innerloop_ctx(model, optimizer, copy_initial_weights=False, track_higher_grads=False) as (fmodel, foptimizer):
+        with higher.innerloop_ctx(model, optimizer, copy_initial_weights=True) as (fmodel, foptimizer):
             # functional version of model allows gradient propagation through parameters of a model
             ##heavy mem allocation here
             print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
