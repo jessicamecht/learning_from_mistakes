@@ -6,6 +6,7 @@ import higher
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import gc
+import typing as _typing
 import collections, gc, resource, torch
 
 class Architect():
@@ -207,7 +208,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
     with torch.no_grad():
         logits_val = model(input_val)
     with torch.backends.cudnn.flags(enabled=False):
-        with higher.innerloop_ctx(model, optimizer, copy_initial_weights=False) as (fmodel, foptimizer):
+        with higher.innerloop_ctx(model, optimizer, copy_initial_weights=False, track_higher_grads=False) as (fmodel, foptimizer):
             # functional version of model allows gradient propagation through parameters of a model
             ##heavy mem allocation here
             print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -236,6 +237,8 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
         gc.collect()
         torch.cuda.empty_cache()
     return visual_encoder_gradients, coeff_vector_gradients
+
+
 
 def update_gradients(visual_encoder_gradients, coeff_vector_gradients, visual_encoder, coefficient_vector):
     # Update the visual encoder weights
