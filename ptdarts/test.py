@@ -81,7 +81,7 @@ if __name__ == "__main__":
     coefficient_vector = coefficient_vector.to(device)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
-    w_optim = torch.optim.SGD(list(model.parameters()) + list(visual_encoder_model.parameters()) + [coefficient_vector], 0.01)
+    w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
