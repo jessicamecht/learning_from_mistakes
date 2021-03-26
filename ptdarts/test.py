@@ -8,6 +8,7 @@ import torch.nn as nn
 from models.visual_encoder import Resnet_Encoder
 from torchvision import transforms
 from weight_samples.sample_weights import calc_instance_weights
+import GPUtil
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -110,5 +111,6 @@ if __name__ == "__main__":
     torch.cuda.empty_cache()
 
     count_tensors(app="6", print_new=True)
+    GPUtil.showUtilization()
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
