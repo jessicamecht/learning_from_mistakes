@@ -103,7 +103,9 @@ if __name__ == "__main__":
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
     w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
+    GPUtil.showUtilization()
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
+    GPUtil.showUtilization()
     count_tensors(app="5")
     GPUtil.showUtilization()
     del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector, a, b, w_optim, test_data, test_loader, val_data, valid_loader, root, train_data, train_size
