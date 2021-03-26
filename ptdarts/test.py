@@ -44,8 +44,8 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
 
 if __name__ == "__main__":
     root = '../data'
-    train_data = CIFAR10(root=root, train=True, download=True, transform=transform_train)
-    test_data = CIFAR10(root=root, train=False, download=True, transform=transform_test)
+    train_data = CIFAR10(root=root, train=True, download=True)
+    test_data = CIFAR10(root=root, train=False, download=True)
     torch.manual_seed(43)
     val_data_size = len(train_data) // 2  # use half of the dataset for validation
     train_size = len(train_data) - val_data_size
