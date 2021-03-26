@@ -69,8 +69,7 @@ if __name__ == "__main__":
                                               drop_last=True)
     model = SearchCNNController(3, 16, 10, 8,
                                 nn.CrossEntropyLoss(), device_ids=[0])
-    w_optim = torch.optim.SGD(model.weights(), 0.01, momentum=0.01,
-                              weight_decay=0.01)
+
 
     inp, targ = next(iter(train_loader))
     inp_val, targ_val = next(iter(train_loader))
@@ -82,6 +81,7 @@ if __name__ == "__main__":
     coefficient_vector = coefficient_vector.to(device)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
+    w_optim = torch.optim.SGD(list(model.parameters()) + list(visual_encoder_model.parameters()) + [coefficient_vector], 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
