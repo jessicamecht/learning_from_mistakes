@@ -56,7 +56,7 @@ class Architect():
         new_coeff = self.coefficient_vector #copy.deepcopy(self.coefficient_vector)
         new_vis = self.visual_encoder_model# copy.deepcopy(self.visual_encoder_model)
         net_copy = self.net#copy.deepcopy(self.net)
-        w_optim_copy = torch.optim.SGD(list(net_copy.parameters()) + list(self.visual_encoder_model.parameters()) + self.coefficient_vector, 0.01)
+        w_optim_copy = torch.optim.SGD(list(net_copy.parameters()) + list(self.visual_encoder_model.parameters()) + list(self.coefficient_vector), 0.01)
         #trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = copy.deepcopy(trn_X), copy.deepcopy(trn_y), copy.deepcopy(val_X), copy.deepcopy(val_y)
         trn_X_copy, trn_y_copy, val_X_copy, val_y_copy = trn_X, trn_y, val_X, val_y
         print('memory_allocatedtest', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
