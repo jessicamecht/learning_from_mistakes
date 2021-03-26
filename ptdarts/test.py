@@ -91,11 +91,14 @@ if __name__ == "__main__":
     gc.collect()
     torch.cuda.empty_cache()
 
+    count = 0
     for obj in gc.get_objects():
         try:
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
                 print(type(obj), obj.size())
+                count+=1
         except:
             pass
+    print(count, 'count')
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
