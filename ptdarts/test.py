@@ -54,7 +54,7 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
         count_tensors(app="4")
     return visual_encoder_gradients, coeff_vector_gradients
 
-def count_tensors(app = "", print=False):
+def count_tensors(app, print=False):
     count = 0
     for obj in gc.get_objects():
         try:
