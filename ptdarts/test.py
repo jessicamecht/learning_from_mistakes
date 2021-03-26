@@ -91,7 +91,7 @@ if __name__ == "__main__":
     model = SearchCNNController(3, 16, 10, 8,
                                 nn.CrossEntropyLoss(), device_ids=[0])
 
-
+    GPUtil.showUtilization()
     inp, targ = next(iter(train_loader))
     inp_val, targ_val = next(iter(train_loader))
     inp, targ = inp.to(device), targ.to(device)
@@ -107,7 +107,6 @@ if __name__ == "__main__":
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
     GPUtil.showUtilization()
     count_tensors(app="5")
-    GPUtil.showUtilization()
     del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector, a, b, w_optim, test_data, test_loader, val_data, valid_loader, root, train_data, train_size
     gc.collect()
     torch.cuda.empty_cache()
