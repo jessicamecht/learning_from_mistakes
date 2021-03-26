@@ -74,9 +74,14 @@ if __name__ == "__main__":
 
     inp, targ = next(iter(train_loader))
     inp_val, targ_val = next(iter(train_loader))
-    inp, targ = inp_val.to(device), targ.to(device)
+    inp, targ = inp.to(device), targ.to(device)
+    inp_val, targ_val = inp_val.to(device), targ_val.to(device)
     model = model.to(device)
     inputDim = inp_val.shape[0]
     coefficient_vector  = torch.nn.Parameter(torch.ones(inputDim, 1), requires_grad=True)
+    coefficient_vector = coefficient_vector.to(device)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
-    meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
+    visual_encoder_model = visual_encoder_model.to(device)
+    a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
+    print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
+          torch.cuda.memory_reserved() / 1e9)
