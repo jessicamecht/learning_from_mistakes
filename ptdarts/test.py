@@ -3,8 +3,9 @@ import higher
 import gc
 import torch.nn.functional as F
 from torchvision.datasets import CIFAR10
-
-
+from models.search_cnn import SearchCNNController
+import torch.nn as nn
+from models.visual_encoder import Resnet_Encoder
 
 def meta_learn_test(model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
     with torch.backends.cudnn.flags(enabled=False):
@@ -51,3 +52,14 @@ if __name__ == "__main__":
     train_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
     train_loader = torch.utils.data.DataLoader(train_data, 5, shuffle=True, num_workers=0,
                                                pin_memory=True, drop_last=True)
+    model = SearchCNNController(2, 16, 10, 2,
+                                nn.CrossEntropyLoss(), device_ids=[0])
+    w_optim = torch.optim.SGD(model.weights(), 0.01, momentum=0.01,
+                              weight_decay=0.01)
+
+    inp, targ = next(iter(train_loader))
+    inp_val, targ_val = next(next(iter(train_loader)))
+    inputDim = inp_val.shape[0]
+    coefficient_vector  = torch.nn.Parameter(torch.ones(inputDim, 1), requires_grad=True)
+    visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
+    meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
