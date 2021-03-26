@@ -6,6 +6,7 @@ from torchvision.datasets import CIFAR10
 from models.search_cnn import SearchCNNController
 import torch.nn as nn
 from models.visual_encoder import Resnet_Encoder
+from torchvision import transforms
 
 def meta_learn_test(model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
     with torch.backends.cudnn.flags(enabled=False):
@@ -43,9 +44,16 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
     return visual_encoder_gradients, coeff_vector_gradients
 
 if __name__ == "__main__":
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
     root = '../data'
-    train_data = CIFAR10(root=root, train=True, download=True)
-    test_data = CIFAR10(root=root, train=False, download=True)
+    train_data = CIFAR10(root=root, train=True, download=True, transform=transform_train)
+    test_data = CIFAR10(root=root, train=False, download=True, transform=transform_train)
     torch.manual_seed(43)
     val_data_size = len(train_data) // 2  # use half of the dataset for validation
     train_size = len(train_data) - val_data_size
