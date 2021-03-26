@@ -44,14 +44,18 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
 
 if __name__ == "__main__":
     root = '../data'
-    train_data = CIFAR10(root=root, train=True, download=True)
-    test_data = CIFAR10(root=root, train=False, download=True)
+    train_data = CIFAR10(root=root, train=True, download=True, transform=transform_train)
+    test_data = CIFAR10(root=root, train=False, download=True, transform=transform_test)
     torch.manual_seed(43)
     val_data_size = len(train_data) // 2  # use half of the dataset for validation
     train_size = len(train_data) - val_data_size
-    train_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
-    train_loader = torch.utils.data.DataLoader(train_data, 5, shuffle=True, num_workers=1,
+    train_data, val_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
+    train_loader = torch.utils.data.DataLoader(train_data, 5, shuffle=True, num_workers=0,
                                                pin_memory=True, drop_last=True)
+    valid_loader = torch.utils.data.DataLoader(val_data, 5, num_workers=0,
+                                               pin_memory=True, drop_last=True)
+    test_loader = torch.utils.data.DataLoader(test_data, 5, num_workers=0, pin_memory=True,
+                                              drop_last=True)
     model = SearchCNNController(2, 16, 10, 2,
                                 nn.CrossEntropyLoss(), device_ids=[0])
     w_optim = torch.optim.SGD(model.weights(), 0.01, momentum=0.01,
