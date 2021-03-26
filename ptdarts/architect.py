@@ -2,7 +2,6 @@
 import copy
 import torch
 import torch.nn as nn
-import higher
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import collections, gc, resource, torch
@@ -222,8 +221,8 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
             weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
-            logits = fmodel(input_val)
-            meta_val_loss = F.cross_entropy(logits, target_val)
+            logits_val = fmodel(input_val)
+            meta_val_loss = F.cross_entropy(logits_val, target_val)
             coeff_vector_gradients = torch.autograd.grad(meta_val_loss, coefficient_vector, retain_graph=True)
             coeff_vector_gradients = coeff_vector_gradients[0].detach()
             visual_encoder_gradients = torch.autograd.grad(meta_val_loss,
@@ -232,9 +231,12 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
 
             print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
+            logits.detach()
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
+        for module in fmodel.modules():
+            del module.weight
     return visual_encoder_gradients, coeff_vector_gradients
 
 
