@@ -8,6 +8,9 @@ import torch.nn as nn
 from models.visual_encoder import Resnet_Encoder
 from torchvision import transforms
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
 def meta_learn_test(model, optimizer, input, target, input_val, target_val, coefficient_vector, visual_encoder):
     with torch.backends.cudnn.flags(enabled=False):
         with higher.innerloop_ctx(model, optimizer, copy_initial_weights=True) as (fmodel, foptimizer):
@@ -71,6 +74,8 @@ if __name__ == "__main__":
 
     inp, targ = next(iter(train_loader))
     inp_val, targ_val = next(iter(train_loader))
+    inp, targ = inp_val.to(device), targ.to(device)
+    model = model.to(device)
     inputDim = inp_val.shape[0]
     coefficient_vector  = torch.nn.Parameter(torch.ones(inputDim, 1), requires_grad=True)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
