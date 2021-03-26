@@ -58,7 +58,7 @@ if __name__ == "__main__":
                               weight_decay=0.01)
 
     inp, targ = next(iter(train_loader))
-    inp_val, targ_val = next(next(iter(train_loader)))
+    inp_val, targ_val = next(iter(train_loader))
     inputDim = inp_val.shape[0]
     coefficient_vector  = torch.nn.Parameter(torch.ones(inputDim, 1), requires_grad=True)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
