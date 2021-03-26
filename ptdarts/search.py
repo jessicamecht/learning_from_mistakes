@@ -94,7 +94,7 @@ def main():
 
     # meta learning coeff vector visual encoder optimizer
     visual_encoder_optimizer = torch.optim.Adam(visual_encoder_model.parameters(), betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
-    coeff_vector_optimizer = torch.optim.Adam(coeff_vector, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
+    coeff_vector_optimizer = torch.optim.Adam([coeff_vector], betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
 
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
