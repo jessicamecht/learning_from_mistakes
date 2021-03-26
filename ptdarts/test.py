@@ -48,8 +48,6 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
-        for module in fmodel.modules():
-            del module.weight
     return visual_encoder_gradients, coeff_vector_gradients
 
 if __name__ == "__main__":
