@@ -1,4 +1,4 @@
-name: lfm
+name: lfm2
 channels:
   - pytorch
   - numba/label/dev

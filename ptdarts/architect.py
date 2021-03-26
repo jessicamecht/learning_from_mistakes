@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from weight_samples.sample_weights import calc_instance_weights
 import collections, gc, resource, torch
+import higher
 
 class Architect():
     """Object to handle the """
