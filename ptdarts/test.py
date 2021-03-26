@@ -20,9 +20,9 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
             ##heavy mem allocation here
             print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                       torch.cuda.memory_reserved() / 1e9)
-            count_tensors("1")
+            count_tensors(app="1")
             logits = fmodel(input)
-            count_tensors("2")
+            count_tensors(app="2")
             print('memory_allocatedt11', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -45,13 +45,13 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
 
             print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
-            count_tensors("3")
+            count_tensors(app="3")
             logits.detach()
             weighted_training_loss.detach()
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
-        count_tensors("4")
+        count_tensors(app="4")
     return visual_encoder_gradients, coeff_vector_gradients
 
 def count_tensors(app = "", print=False):
@@ -103,12 +103,12 @@ if __name__ == "__main__":
     visual_encoder_model = visual_encoder_model.to(device)
     w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
-    count_tensors("5")
+    count_tensors(app="5")
 
     del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector, a, b, w_optim, test_data, test_loader, val_data, valid_loader, root, train_data, train_size
     gc.collect()
     torch.cuda.empty_cache()
 
-    count_tensors("6", print=True)
+    count_tensors(app="6", print=True)
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
