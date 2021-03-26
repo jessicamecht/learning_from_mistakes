@@ -87,5 +87,15 @@ if __name__ == "__main__":
     visual_encoder_model = visual_encoder_model.to(device)
     w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
+    del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(type(obj), obj.size())
+        except:
+            pass
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
