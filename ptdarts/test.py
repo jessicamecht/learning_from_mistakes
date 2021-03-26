@@ -87,7 +87,7 @@ if __name__ == "__main__":
     visual_encoder_model = visual_encoder_model.to(device)
     w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
-    del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector
+    del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector, a, b
     gc.collect()
     torch.cuda.empty_cache()
 
