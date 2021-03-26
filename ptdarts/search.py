@@ -104,6 +104,7 @@ def main():
 
     # training loop
     best_top1 = 0.
+    criterion = nn.CrossEntropyLoss()
     for epoch in range(config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
@@ -113,14 +114,12 @@ def main():
         architect.print_visual_weights(logger)
 
         # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger)
+        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger, criterion)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, epoch, cur_step, writer, logger)
+        top1 = validate(valid_loader, model, epoch, cur_step, writer, logger, criterion)
 
-        # log
-        # genotype
         genotype = model.genotype()
         logger.info("genotype = {}".format(genotype))
 
@@ -147,12 +146,10 @@ def main():
     writer.add_graph(model.encoder, next(iter(valid_loader)))
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, visual_encoder_optimizer, coeff_vector_optimizer, lr, epoch, writer, logger, criterion):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
-
-
 
     cur_step = epoch*len(train_loader)
     writer.add_scalar('train_search/lr', lr, cur_step)
@@ -176,15 +173,14 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
         coeff_vector_optimizer.zero_grad()
 
         architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim) #calculates gradient for alphas and updates V and r
+
         alpha_optim.step() #updates weights for alphas
         visual_encoder_optimizer.step() #updates visual encoder weights
         coeff_vector_optimizer.step()#updates coefficient vector
-        #print("Updated alphas")
 
         # phase 1. child network step (w) minimizes the training loss
         w_optim.zero_grad()
         logits = model(trn_X)
-        criterion = nn.CrossEntropyLoss()
         loss = criterion(logits, trn_y)
         loss.backward()
         # gradient clipping
@@ -216,14 +212,13 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, vi
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, epoch, cur_step, writer, logger):
+def validate(valid_loader, model, epoch, cur_step, writer, logger, crit):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
 
     model.eval()
-
     with torch.no_grad():
         for step, (X, y) in enumerate(valid_loader):
             if step > 20:
@@ -232,8 +227,7 @@ def validate(valid_loader, model, epoch, cur_step, writer, logger):
             N = X.size(0)
 
             logits = model(X)
-            crit = nn.CrossEntropyLoss()
-            loss = crit(logits, y)#model.criterion(logits, y)
+            loss = crit(logits, y)
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
