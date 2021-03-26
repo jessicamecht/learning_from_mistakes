@@ -87,7 +87,7 @@ def main():
     inputDim = next(iter(valid_loader))[0].shape[0]
 
     #Init coefficient vector r
-    coeff_vector = torch.nn.Parameter(torch.ones(inputDim, 1,  requires_grad=True), requires_grad=True).to(device)
+    coeff_vector = torch.nn.Parameter(torch.ones(inputDim, 1,  requires_grad=True).to(device))
 
     # alphas optimizer
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999), weight_decay=config.alpha_weight_decay)
