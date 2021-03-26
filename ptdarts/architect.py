@@ -234,6 +234,7 @@ def meta_learn(model, optimizer, input, target, input_val, target_val, coefficie
             print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
             for module in fmodel.modules():
+                print(module)
                 del module.weight
             logits.detach()
             weighted_training_loss.detach()
