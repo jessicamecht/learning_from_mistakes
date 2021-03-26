@@ -64,7 +64,7 @@ def count_tensors(app, print=False):
                 count += 1
         except:
             pass
-    print(str(count) + f" count{app}")
+    print(str(count))
 
 if __name__ == "__main__":
     transform_train = transforms.Compose([
