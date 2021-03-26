@@ -7,6 +7,8 @@ from models.search_cnn import SearchCNNController
 import torch.nn as nn
 from models.visual_encoder import Resnet_Encoder
 from torchvision import transforms
+from weight_samples.sample_weights import calc_instance_weights
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -23,8 +25,12 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
                   torch.cuda.memory_reserved() / 1e9)
             print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
+            with torch.no_grad():
+                logits_val = model(input_val)
 
-            weighted_training_loss = torch.mean(F.cross_entropy(logits, target, reduction='none'))
+            weights = calc_instance_weights(input, target, input_val, target_val, logits_val, coefficient_vector, visual_encoder)
+
+            weighted_training_loss = torch.mean(weights * F.cross_entropy(logits, target, reduction='none'))
             foptimizer.step(weighted_training_loss)  # replaces gradients with respect to model weights -> w2
 
             logits_val = fmodel(input_val)
