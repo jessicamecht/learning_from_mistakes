@@ -50,7 +50,7 @@ if __name__ == "__main__":
     val_data_size = len(train_data) // 2  # use half of the dataset for validation
     train_size = len(train_data) - val_data_size
     train_data = torch.utils.data.dataset.random_split(train_data, [train_size, val_data_size])
-    train_loader = torch.utils.data.DataLoader(train_data, 5, shuffle=True, num_workers=0,
+    train_loader = torch.utils.data.DataLoader(train_data, 5, shuffle=True, num_workers=1,
                                                pin_memory=True, drop_last=True)
     model = SearchCNNController(2, 16, 10, 2,
                                 nn.CrossEntropyLoss(), device_ids=[0])
