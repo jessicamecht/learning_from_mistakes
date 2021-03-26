@@ -77,7 +77,7 @@ if __name__ == "__main__":
     inp_val, targ_val = inp_val.to(device), targ_val.to(device)
     model = model.to(device)
     inputDim = inp_val.shape[0]
-    coefficient_vector  = torch.nn.Parameter(torch.ones(inputDim, 1), requires_grad=True)
+    coefficient_vector  = torch.ones(inputDim, 1, requires_grad=True).to(device)
     coefficient_vector = coefficient_vector.to(device)
     visual_encoder_model = Resnet_Encoder(nn.CrossEntropyLoss())
     visual_encoder_model = visual_encoder_model.to(device)
