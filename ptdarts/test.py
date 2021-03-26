@@ -64,7 +64,7 @@ if __name__ == "__main__":
                                                pin_memory=True, drop_last=True)
     test_loader = torch.utils.data.DataLoader(test_data, 5, num_workers=0, pin_memory=True,
                                               drop_last=True)
-    model = SearchCNNController(2, 16, 10, 2,
+    model = SearchCNNController(2, 16, 10, 8,
                                 nn.CrossEntropyLoss(), device_ids=[0])
     w_optim = torch.optim.SGD(model.weights(), 0.01, momentum=0.01,
                               weight_decay=0.01)
