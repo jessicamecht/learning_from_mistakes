@@ -59,7 +59,8 @@ def count_tensors(app = "", print=False):
     for obj in gc.get_objects():
         try:
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                if print: print(type(obj), obj.size())
+                if print:
+                    print(type(obj), obj.size())
                 count += 1
         except:
             pass
