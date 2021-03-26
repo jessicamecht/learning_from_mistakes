@@ -64,7 +64,7 @@ def count_tensors(app, print_new=False):
                 count += 1
         except:
             pass
-    print(str(count) + app)
+    print(str(count) + " " + app)
 
 if __name__ == "__main__":
     transform_train = transforms.Compose([
@@ -109,6 +109,6 @@ if __name__ == "__main__":
     gc.collect()
     torch.cuda.empty_cache()
 
-    count_tensors(app="6", print=True)
+    count_tensors(app="6", print_new=True)
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
