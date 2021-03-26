@@ -54,11 +54,12 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
         count_tensors("4")
     return visual_encoder_gradients, coeff_vector_gradients
 
-def count_tensors(app = ""):
+def count_tensors(app = "", print=False):
     count = 0
     for obj in gc.get_objects():
         try:
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                if print: print(type(obj), obj.size())
                 count += 1
         except:
             pass
@@ -107,6 +108,6 @@ if __name__ == "__main__":
     gc.collect()
     torch.cuda.empty_cache()
 
-    count_tensors("6")
+    count_tensors("6", print=True)
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
