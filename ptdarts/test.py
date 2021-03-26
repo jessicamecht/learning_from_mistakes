@@ -20,7 +20,9 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
             ##heavy mem allocation here
             print('memory_allocatedt1', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                       torch.cuda.memory_reserved() / 1e9)
+            count_tensors("1")
             logits = fmodel(input)
+            count_tensors("2")
             print('memory_allocatedt11', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
                   torch.cuda.memory_reserved() / 1e9)
             print('memory_allocatedt2', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
@@ -43,12 +45,24 @@ def meta_learn_test(model, optimizer, input, target, input_val, target_val, coef
 
             print('memory_allocatedtlast', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
               torch.cuda.memory_reserved() / 1e9)
+            count_tensors("3")
             logits.detach()
             weighted_training_loss.detach()
         del logits, meta_val_loss, foptimizer, fmodel, weighted_training_loss
         gc.collect()
         torch.cuda.empty_cache()
+        count_tensors("4")
     return visual_encoder_gradients, coeff_vector_gradients
+
+def count_tensors(app = ""):
+    count = 0
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                count += 1
+        except:
+            pass
+    print(count, f'count{app}')
 
 if __name__ == "__main__":
     transform_train = transforms.Compose([
@@ -87,18 +101,12 @@ if __name__ == "__main__":
     visual_encoder_model = visual_encoder_model.to(device)
     w_optim = torch.optim.SGD(list(model.parameters()), 0.01)
     a,b = meta_learn_test(model, w_optim, inp, targ, inp_val, targ_val, coefficient_vector, visual_encoder_model)
+    count_tensors("5")
+
     del inp, inp_val, targ, targ_val, model, visual_encoder_model, coefficient_vector, a, b
     gc.collect()
     torch.cuda.empty_cache()
 
-    count = 0
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                print(type(obj), obj.size())
-                count+=1
-        except:
-            pass
-    print(count, 'count')
+    count_tensors("6")
     print('memory_allocatedt2klhljkh', torch.cuda.memory_allocated() / 1e9, 'memory_reserved',
           torch.cuda.memory_reserved() / 1e9)
